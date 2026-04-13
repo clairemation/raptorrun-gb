@@ -16,9 +16,18 @@ section "update", rom0
         ld [rLCDC], a
         ; init player struct
         copy [WRAM_PLAYER_STRUCT + STATE], STATE_ONGROUND
-        copy [WRAM_PLAYER_STRUCT + X_POS], 50
+        copy [WRAM_PLAYER_STRUCT + X_POS], 40
         copy [WRAM_PLAYER_STRUCT + Y_POS], 120
         copy [WRAM_PLAYER_STRUCT + SPEED], 40
+
+        ; initialize bouncer list
+        ld hl, WRAM_BOUNCER_SPOTS
+        ld b, 32
+        .loop
+            copy [hli], 0
+            dec b
+            jr nz, .loop
+
 
         ; init random seed to not be 0
         ld a, [WRAM_RANDOM]
@@ -75,6 +84,8 @@ section "update", rom0
             srl a
             srl a
 
+            ld b, a ; index in bouncer spot list
+
             ld l, a
             xor a
             ld h, a
@@ -83,20 +94,37 @@ section "update", rom0
             ld de, TILEMAP_BASE_ADDRESS
             add hl, de
 
-
             ; roll random number
             GetNextRandomValue WRAM_RANDOM
             cp 75
             jr nc, .noBouncer
+                Draw4BackgroundTileChunk $0C, $0D, $0E, $0F ;draw bouncer
 
-            Draw4BackgroundTileChunk $0C, $0D, $0E, $0F ;draw bouncer
-            
-            jr .isMultiple
+                ld hl, WRAM_BOUNCER_SPOTS
+                ld a, b ; bouncer spot list index
+                
+                ld e, a
+                xor a
+                ld d, a
+                add hl, de
+                copy [hli], 1
+                copy [hl], 1
+
+                jr .isMultiple
 
             .noBouncer
 
                 Draw4BackgroundTileChunk $00, $01, $02, $03 ;draw bg tile
 
+                    ld hl, WRAM_BOUNCER_SPOTS
+                    ld a, b
+
+                    ld e, a
+                    xor a
+                    ld d, a
+                    add hl, de
+                    copy [hli], 0
+                    copy [hl], 0
 
         .isMultiple
 

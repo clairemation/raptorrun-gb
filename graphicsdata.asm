@@ -133,11 +133,11 @@ section "graphics", rom0
         ; init sprite 0
         copy [SPRITE_0_ADDRESS + OAMA_TILEID], 0
         copy [SPRITE_0_ADDRESS + OAMA_FLAGS], OAMF_PAL0
-        copy [SPRITE_0_ADDRESS + OAMA_X], 50
+        copy [SPRITE_0_ADDRESS + OAMA_X], 40
         
         copy [SPRITE_0_RIGHTSIDE + OAMA_TILEID], 2
         copy [SPRITE_0_RIGHTSIDE + OAMA_FLAGS], OAMF_PAL0
-        copy [SPRITE_0_RIGHTSIDE + OAMA_X], 58
+        copy [SPRITE_0_RIGHTSIDE + OAMA_X], 48
 
 
         ;init scroll

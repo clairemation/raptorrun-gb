@@ -137,7 +137,43 @@ UpdateFalling:
     jr .yLessThan120
     .yGTOrEqualTo120
         copy [WRAM_PLAYER_STRUCT + Y_POS], 120
-        copy [WRAM_PLAYER_STRUCT + STATE], STATE_ONGROUND
+        
+        ;get current tile
+        ld a, [WRAM_SCROLL_X] 
+        add a, 40
+        ; divide by 8 to get tile
+        srl a
+        srl a
+        srl a
+
+        ; ld b, b
+
+        ; check bouncer tile list
+        ld hl, WRAM_BOUNCER_SPOTS
+        ld e, a
+        xor a
+        ld d, a
+        add hl, de ; WRAM_BOUNCER_SPOTS + player current tile X
+
+        ld a, [hl]
+        ; if a != 0
+        and a
+        jr z, .aIsNotZero
+            ;bounce
+            copy [WRAM_PLAYER_STRUCT + SPEED], 40
+            copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
+            jr .doneWithBouncerCheck
+        .aIsNotZero
+            copy [WRAM_PLAYER_STRUCT + STATE], STATE_ONGROUND
+        .doneWithBouncerCheck
+
+        
+        
+        
+
+
+
+        ; copy [WRAM_PLAYER_STRUCT + STATE], STATE_ONGROUND
         jr .yComparisonDone
     .yLessThan120
         ld a, c
