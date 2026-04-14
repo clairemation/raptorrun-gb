@@ -145,8 +145,7 @@ UpdateFalling:
         srl a
         srl a
         srl a
-
-        ; ld b, b
+        srl a
 
         ; check bouncer tile list
         ld hl, WRAM_BOUNCER_SPOTS

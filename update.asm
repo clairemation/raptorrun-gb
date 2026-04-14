@@ -22,7 +22,7 @@ section "update", rom0
 
         ; initialize bouncer list
         ld hl, WRAM_BOUNCER_SPOTS
-        ld b, 32
+        ld b, 16
         .loop
             copy [hli], 0
             dec b
@@ -58,6 +58,70 @@ section "update", rom0
         call UpdatePlayerGraphics
         
         copy [rSCX], [WRAM_SCROLL_X]
+
+        ; for each bouncer in list, render all 4 tiles
+        xor a
+        ld b, a ; bouncer list index
+
+        .drawBouncersLoop
+            ; get bouncer list item address
+            ld a, b ; bouncer list index
+            ld hl, WRAM_BOUNCER_SPOTS
+            ld e, a
+            xor a
+            ld d, a
+            add hl, de
+
+            ; load bouncer item
+            ld a, [hl]
+
+
+            ; if !=0, draw bouncer tiles
+            and a
+            jr z, .isBouncer
+                ld a, b
+
+                ld hl, TILEMAP_BASE_ADDRESS
+
+                sla a ; x2 to get 8x8 tile index
+                ld e, a
+                xor a
+                ld d, a
+                add hl, de
+
+                ld de, $01c0 ; vertical tiles
+                add hl, de
+
+                Draw4BackgroundTileChunk $0C, $0D, $0E, $0F ;draw bouncer
+
+                jr .doneWithBouncerCheck
+
+            .isBouncer
+                ld a, b
+
+                ld hl, TILEMAP_BASE_ADDRESS
+
+                sla a ; x2 to get 8x8 tile index
+                ld e, a
+                xor a
+                ld d, a
+                add hl, de
+
+                ld de, $01c0 ; vertical tiles
+                add hl, de
+
+                Draw4BackgroundTileChunk $00, $01, $02, $03 ;draw bg tile
+
+            .doneWithBouncerCheck
+            inc b
+            ld a, b
+            cp a, 16
+            jr nz, .drawBouncersLoop
+
+        
+
+
+
 
         ;;;;;; logic ;;;;;;
 
@@ -97,12 +161,13 @@ section "update", rom0
             ; roll random number
             GetNextRandomValue WRAM_RANDOM
             cp 75
-            jr nc, .noBouncer
-                Draw4BackgroundTileChunk $0C, $0D, $0E, $0F ;draw bouncer
+            jr nc, .bouncer
+                ; Draw4BackgroundTileChunk $0C, $0D, $0E, $0F ;draw bouncer
 
                 ld hl, WRAM_BOUNCER_SPOTS
                 ld a, b ; bouncer spot list index
                 
+                srl a
                 ld e, a
                 xor a
                 ld d, a
@@ -112,13 +177,14 @@ section "update", rom0
 
                 jr .isMultiple
 
-            .noBouncer
+            .bouncer
 
-                Draw4BackgroundTileChunk $00, $01, $02, $03 ;draw bg tile
+                ; Draw4BackgroundTileChunk $00, $01, $02, $03 ;draw bg tile
 
                     ld hl, WRAM_BOUNCER_SPOTS
                     ld a, b
 
+                    srl a
                     ld e, a
                     xor a
                     ld d, a
