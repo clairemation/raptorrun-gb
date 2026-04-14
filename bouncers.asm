@@ -52,7 +52,7 @@ section "bouncers", rom0
             ld a, [WRAM_SCROLL_X]
             ld b, a
             and a, %00001111
-            jr nz, .isMultiple
+            jr nz, .isOnTileBorder
 
                 ; is a multiple of 16, i.e. on tile border
 
@@ -68,41 +68,43 @@ section "bouncers", rom0
 
                 ld b, a ; x tile
 
+                ;get bouncer slot address
+                ld hl, WRAM_BOUNCER_SPOTS
+                ; add spot index to hl
+                ld a, b ; 8x8 x tile
+                srl a ; /2 to get 16x16 spot index
+                ld e, a
+                xor a
+                ld d, a
+                add hl, de ; hl = spot address
 
-                ; roll random number
                 GetNextRandomValue WRAM_RANDOM
-                cp 75
-                jr nc, .bouncer
-
-                    ld hl, WRAM_BOUNCER_SPOTS
-                    
-                    ; add spot index to hl
-                    ld a, b ; 8x8 x tile
-                    srl a ; /2 to get 16x16 spot index
-                    ld e, a
-                    xor a
-                    ld d, a
-                    add hl, de
-
+                cp 50
+                    jr c, .isTrike
+                cp 100
+                    jr c, .isSkeleton
+                cp 150
+                    jr c, .isFern
+                jr .isEmpty
+                
+                .isTrike
+                    copy [hli], $08
+                    jr .randomComparisonDone
+                .isSkeleton
                     copy [hli], $0C
-
-                    jr .isMultiple
-
-                .bouncer
-
-                    ld hl, WRAM_BOUNCER_SPOTS
-                    ld a, b
-
-                    srl a
-                    ld e, a
-                    xor a
-                    ld d, a
-                    add hl, de
+                    jr .randomComparisonDone
+                .isFern
+                    copy [hli], $14
+                    jr .randomComparisonDone
+                .isEmpty
                     copy [hli], $00
+                    jr .randomComparisonDone
+                .randomComparisonDone
 
-            .isMultiple
+            .isOnTileBorder
             ret
 
+        ;TODO: Fix bug where sometimes tile 4 gets wrong tile id
         ;uses c
         Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL:
             ; 1 3
