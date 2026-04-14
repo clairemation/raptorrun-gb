@@ -158,6 +158,7 @@ Fall:
             ;bounce
             copy [WRAM_PLAYER_STRUCT + SPEED], 40
             copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
+            call SquashBouncerAtHL
             jr .yComparisonDone
         .aIsNotZero
             ;land on ground
