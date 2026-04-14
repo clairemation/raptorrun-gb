@@ -20,47 +20,27 @@ section "bouncers", rom0
             ld d, a
             add hl, de
 
-            ; load bouncer item
+            ; load bouncer tile
             ld a, [hl]
 
+            ld c, a ; bouncer tile
 
-            ; if !=0, draw bouncer tiles
-            and a
-            jr z, .isBouncer
-                ld a, b
+            ld a, b
 
-                ld hl, TILEMAP_BASE_ADDRESS
+            ld hl, TILEMAP_BASE_ADDRESS
 
-                sla a ; x2 to get 8x8 tile index
-                ld e, a
-                xor a
-                ld d, a
-                add hl, de
+            sla a ; x2 to get 8x8 tile index
+            ld e, a
+            xor a
+            ld d, a
+            add hl, de
 
-                ld de, $01c0 ; vertical tiles
-                add hl, de
+            ld de, $01c0 ; vertical tiles
+            add hl, de
 
-                Draw4BackgroundTileChunk $0C, $0D, $0E, $0F ;draw bouncer
+            ld a, c ; bouncer tile
+            call Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
 
-                jr .doneWithBouncerCheck
-
-            .isBouncer
-                ld a, b
-
-                ld hl, TILEMAP_BASE_ADDRESS
-
-                sla a ; x2 to get 8x8 tile index
-                ld e, a
-                xor a
-                ld d, a
-                add hl, de
-
-                ld de, $01c0 ; vertical tiles
-                add hl, de
-
-                Draw4BackgroundTileChunk $00, $01, $02, $03 ;draw bg tile
-
-            .doneWithBouncerCheck
             inc b
             ld a, b
             cp a, 16
@@ -123,6 +103,39 @@ section "bouncers", rom0
             .isMultiple
             ret
 
+        
+        Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL:
+            push bc
+
+            ; 1 3
+            ; 2 4
+            ld b, a
+
+            ; tile 1
+            copy [hli], a
+
+            ; tile 3
+            ld a, b
+            add a, 2
+            copy [hl], a
+            
+            ; one row down - 1 column = +31 tiles
+            ld a, 31
+            ld e, a
+            xor a
+            ld d, a
+            add hl, de
+
+            ld a, b
+            inc a
+            copy [hli], a
+
+            add a, 2
+            copy [hl], a
+        
+            pop bc
+            
+            ret
 
 
 export UpdateBouncerGraphics, UpdateBouncers
