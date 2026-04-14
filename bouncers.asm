@@ -39,7 +39,7 @@ section "bouncers", rom0
             add hl, de
 
             ld a, c ; bouncer tile
-            call Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
+            call Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL ; uses c
 
             inc b
             ld a, b
@@ -103,19 +103,17 @@ section "bouncers", rom0
             .isMultiple
             ret
 
-        
+        ;uses c
         Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL:
-            push bc
-
             ; 1 3
             ; 2 4
-            ld b, a
+            ld c, a
 
             ; tile 1
             copy [hli], a
 
             ; tile 3
-            ld a, b
+            ld a, c
             add a, 2
             copy [hl], a
             
@@ -126,14 +124,13 @@ section "bouncers", rom0
             ld d, a
             add hl, de
 
-            ld a, b
+            ld a, c
             inc a
             copy [hli], a
 
             add a, 2
             copy [hl], a
         
-            pop bc
             
             ret
 
