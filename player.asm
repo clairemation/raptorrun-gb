@@ -8,16 +8,15 @@ include "jump-table.inc"
 section "player-logic", rom0
 
 UpdatePlayerGraphics:
+    ;update player sprite to match state
     ld a, [WRAM_PLAYER_STRUCT + STATE]
     ld hl, StateSpriteTable
-
     AddAtoHL
-
     ld b, [hl]
-
     copy [_OAMRAM + OAMA_TILEID], b
     
-    ; right-side sprite
+    ; update right-side sprite
+    ; (next OAM sprite = tile + 2)
     ld a, b
     add a, 2
     ld b, a
@@ -73,7 +72,7 @@ UpdateFlapping:
     dec a
     ld [WRAM_PLAYER_STRUCT + FLAP_COOLDOWN], a
 
-    call UpdateFalling
+    call Fall
     ret
 
 
@@ -104,21 +103,19 @@ UpdateRising:
 
 
 UpdateFalling:
-
-    ; if in falling state, check for button press
-    ; (check state because flapping state uses this function too)
-    ld a, [WRAM_PLAYER_STRUCT + STATE]
-    cp a, STATE_FALLING
+    ; check for flap button press
+    UpdatePadInput WRAM_PAD_INPUT
+    TestPadInput_Pressed WRAM_PAD_INPUT, PADF_A
     jr nz, .jumpIsPressed
-        UpdatePadInput WRAM_PAD_INPUT
-        TestPadInput_Pressed WRAM_PAD_INPUT, PADF_A
-        jr nz, .jumpIsPressed
-            copy [WRAM_PLAYER_STRUCT + SPEED], 0
-            copy [WRAM_PLAYER_STRUCT + FLAP_COOLDOWN], 6
-            copy [WRAM_PLAYER_STRUCT + STATE], STATE_FLAPPING    
-        .jumpIsPressed
+        copy [WRAM_PLAYER_STRUCT + SPEED], 0
+        copy [WRAM_PLAYER_STRUCT + FLAP_COOLDOWN], 6
+        copy [WRAM_PLAYER_STRUCT + STATE], STATE_FLAPPING    
+    .jumpIsPressed
+    call Fall
+    ret
 
 
+Fall:
     ld a, [WRAM_PLAYER_STRUCT + SPEED]
     ld c, a ;unscaled speed
     sra a
@@ -139,20 +136,20 @@ UpdateFalling:
         copy [WRAM_PLAYER_STRUCT + Y_POS], 120
         
         ;get current tile
-        ld a, [WRAM_SCROLL_X] 
-        add a, 40
-        ; divide by 8 to get tile
+        ld a, [WRAM_SCROLL_X] ;left edge of screen
+        add a, 40 ;player X offset
+        ;divide by 16 to get slot #
         srl a
         srl a
         srl a
         srl a
 
-        ; check bouncer tile list
+        ; check bouncer slot list
         ld hl, WRAM_BOUNCER_SPOTS
         ld e, a
         xor a
         ld d, a
-        add hl, de ; WRAM_BOUNCER_SPOTS + player current tile X
+        add hl, de ; WRAM_BOUNCER_SPOTS + player slot X
 
         ld a, [hl]
         ; if a != 0
@@ -161,24 +158,16 @@ UpdateFalling:
             ;bounce
             copy [WRAM_PLAYER_STRUCT + SPEED], 40
             copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
-            jr .doneWithBouncerCheck
+            jr .yComparisonDone
         .aIsNotZero
+            ;land on ground
             copy [WRAM_PLAYER_STRUCT + STATE], STATE_ONGROUND
-        .doneWithBouncerCheck
-
-        
-        
-        
-
-
-
-        ; copy [WRAM_PLAYER_STRUCT + STATE], STATE_ONGROUND
-        jr .yComparisonDone
+            jr .yComparisonDone
     .yLessThan120
+        ;increment unscaled speed
         ld a, c
         inc a
         ld [WRAM_PLAYER_STRUCT + SPEED], a
-    .overflow2Done
     .yComparisonDone
 
     ret

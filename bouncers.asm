@@ -86,7 +86,7 @@ section "bouncers", rom0
                 srl a
                 srl a
 
-                ld b, a ; index in bouncer spot list
+                ld b, a ; x tile
 
 
                 ; roll random number
@@ -95,15 +95,16 @@ section "bouncers", rom0
                 jr nc, .bouncer
 
                     ld hl, WRAM_BOUNCER_SPOTS
-                    ld a, b ; bouncer spot list index
                     
-                    srl a
+                    ; add spot index to hl
+                    ld a, b ; 8x8 x tile
+                    srl a ; /2 to get 16x16 spot index
                     ld e, a
                     xor a
                     ld d, a
                     add hl, de
-                    copy [hli], 1
-                    copy [hl], 1
+
+                    copy [hli], $0C
 
                     jr .isMultiple
 
@@ -117,8 +118,7 @@ section "bouncers", rom0
                     xor a
                     ld d, a
                     add hl, de
-                    copy [hli], 0
-                    copy [hl], 0
+                    copy [hli], $00
 
             .isMultiple
             ret
