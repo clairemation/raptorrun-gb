@@ -30,5 +30,4 @@ macro GetNextRandomValue
     ld a, [\1]
     GetNextRandomValueFromLFSR8
     ld [\1], a
-    cp 75
 endm

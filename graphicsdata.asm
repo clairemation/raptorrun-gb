@@ -19,63 +19,26 @@ def SPRITE_TILES_SIZE equ (SPRITES_COUNT * BYTES_PER_TILE * ACTUAL_TILES_PER_TIL
 def SPRITES_ROM_START equ (SPRITES_ROM_END - SPRITE_TILES_SIZE)
 
 
+; \1 = ROMStart \2 = ROMEnd \3 = RAMStart
+macro LoadROMBytesIntoVRAM
+    ld bc, \1
+    ld de, \2
+    ld hl, \3
+    call LoadBytesToHLFromBCToDE
+endm
+
 
 ; load the graphics data from ROM to VRAM
 macro LoadSpriteDataIntoVRAM
-    ld de, SpritesData
-    ld hl, _VRAM8000
-    .load_tile\@
-        ld a, [de]
-        inc de
-        ld [hli], a
-        ld a, d
-        cp a, high(SPRITES_ROM_END)
-        jr z, .highByteMatches\@
-            jr z, .checkOver\@
-        .highByteMatches\@
-            ld a, e
-            cp a, low(SPRITES_ROM_END)
-            jr z, .checkOver\@
-        jr nz, .load_tile\@
-        .checkOver\@
+    LoadROMBytesIntoVRAM SpritesData, SPRITES_ROM_END, _VRAM8000
 endm
 
 macro LoadBGDataIntoVRAM
-    ld de, BGTilesData
-    ld hl, $9000
-    .load_tile\@
-        ld a, [de]
-        inc de
-        ld [hli], a
-        ld a, d
-        cp a, high(BG_TILES_ROM_END)
-        jr z, .highByteMatches\@
-            jr .load_tile\@
-        .highByteMatches\@
-            ld a, e
-            cp a, low(BG_TILES_ROM_END)
-            jr z, .checkOver\@
-        jr nz, .load_tile\@
-        .checkOver\@
+    LoadROMBytesIntoVRAM BGTilesData, BG_TILES_ROM_END, $9000
 endm
 
 macro LoadBGTileMapIntoVRAM
-    ld de, BGTileMap
-    ld hl, $9800
-    .load_byte\@
-        ld a, [de]
-        inc de
-        ld [hli], a
-        ld a, d
-        cp a, high(ROM_END)
-        jr z, .highByteMatches\@
-            jr .load_byte\@
-        .highByteMatches\@
-            ld a, e
-            cp a, low(ROM_END)
-            jr z, .checkOver\@
-        jr nz, .load_byte\@
-        .checkOver\@
+    LoadROMBytesIntoVRAM BGTileMap, ROM_END, $9800
 endm
 
 ; clear the OAM

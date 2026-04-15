@@ -9,7 +9,16 @@ include "random.inc"
 def TILEMAP_BASE_ADDRESS equ($9800)
 
 section "update", rom0
+
     Init:
+        call InitLevel
+        ret
+
+    Update:
+        call UpdateLevel
+        ret
+
+    InitLevel:
         call InitGraphicsData
         ;enable lcd
         ld [rLCDC], a
@@ -48,7 +57,7 @@ section "update", rom0
         ret
 
 
-    Update:
+    UpdateLevel:
         ;wait for vblank
         halt 
 
