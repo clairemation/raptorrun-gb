@@ -27,7 +27,6 @@ macro LoadROMBytesIntoVRAM
     call LoadBytesToHLFromBCToDE
 endm
 
-
 ; load the graphics data from ROM to VRAM
 macro LoadSpriteDataIntoVRAM
     LoadROMBytesIntoVRAM SpritesData, SPRITES_ROM_END, _VRAM8000
@@ -44,7 +43,7 @@ endm
 ; clear the OAM
 macro InitOAM
     ld c, OAM_COUNT
-    ld hl, _OAMRAM + OAMA_Y
+    ld hl, _OAMRAM
     ld de, sizeof_OAM_ATTRS
     .init_oam\@
         ld [hl], 0
