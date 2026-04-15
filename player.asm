@@ -34,11 +34,7 @@ StateSpriteTable:
     db 12 ;falling
 
 UpdatePlayerLogic:
-
-    ;;;;;; logic ;;;;;;
-
     CallJumpTableFunction [WRAM_PLAYER_STRUCT + STATE], UpdateFuncTable
-
     ret
 
 

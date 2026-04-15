@@ -9,16 +9,27 @@ include "random.inc"
 def TILEMAP_BASE_ADDRESS equ($9800)
 
 section "update", rom0
+    
 
     Init:
-        call InitLevel
+        call InitTitleScreen
+        ; call InitLevel
         ret
 
     Update:
-        call UpdateLevel
+        ; cheaper than a jump table, for now
+        ld a, [WRAM_GAME_STATE]
+        cp a, 0
+        jr nz, .LevelState
+        .TitleScreenState
+            call UpdateTitleScreen
+            ret
+        .LevelState
+            call UpdateLevel
         ret
 
     InitLevel:
+        copy [rROMB0], 1
         call InitGraphicsData
         ;enable lcd
         ld [rLCDC], a
@@ -80,4 +91,4 @@ section "update", rom0
 
         ret
 
-export Init, Update
+export Init, InitLevel, Update

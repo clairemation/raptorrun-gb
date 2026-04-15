@@ -1,43 +1,19 @@
 include "hardware.inc"
 include "utils.inc"
+include "graphics-size.inc"
 
-def SPRITE_0_ADDRESS equ (_OAMRAM)
-def SPRITE_0_RIGHTSIDE equ (_OAMRAM + sizeof_OAM_ATTRS)
-
-def ROM_END equ ($8000)
-def TILEMAP_SIZE    equ (1024)
-def TILEMAP_ROM_START   equ(ROM_END - TILEMAP_SIZE)
-def BYTES_PER_TILE equ (16)
-def SPRITES_COUNT equ (8)
-def BG_TILES_COUNT equ (63)
-def ACTUAL_TILES_PER_TILE equ (4)
-def BG_TILES_ROM_END    equ (TILEMAP_ROM_START)
-def BG_TILES_SIZE equ (BG_TILES_COUNT * BYTES_PER_TILE * ACTUAL_TILES_PER_TILE)
-def BG_TILES_ROM_START equ (BG_TILES_ROM_END - BG_TILES_SIZE)
-def SPRITES_ROM_END equ (BG_TILES_ROM_START)
-def SPRITE_TILES_SIZE equ (SPRITES_COUNT * BYTES_PER_TILE * ACTUAL_TILES_PER_TILE)
-def SPRITES_ROM_START equ (SPRITES_ROM_END - SPRITE_TILES_SIZE)
-
-
-; \1 = ROMStart \2 = ROMEnd \3 = RAMStart
-macro LoadROMBytesIntoVRAM
-    ld bc, \1
-    ld de, \2
-    ld hl, \3
-    call LoadBytesToHLFromBCToDE
-endm
 
 ; load the graphics data from ROM to VRAM
 macro LoadSpriteDataIntoVRAM
-    LoadROMBytesIntoVRAM SpritesData, SPRITES_ROM_END, _VRAM8000
+    LoadSeriesOfBytes SpritesData, SPRITES_ROM_END, _VRAM8000
 endm
 
 macro LoadBGDataIntoVRAM
-    LoadROMBytesIntoVRAM BGTilesData, BG_TILES_ROM_END, $9000
+    LoadSeriesOfBytes BGTilesData, BG_TILES_ROM_END, $9000
 endm
 
 macro LoadBGTileMapIntoVRAM
-    LoadROMBytesIntoVRAM BGTileMap, ROM_END, $9800
+    LoadSeriesOfBytes BGTileMap, ROM_END, $9800
 endm
 
 ; clear the OAM
@@ -50,18 +26,6 @@ macro InitOAM
         add hl, de
         dec c
         jr nz, .init_oam\@
-endm
-
-macro DisableLCD
-    ;wait for VBlank
-    .wait_vblank\@
-        ld a, [rLY]
-        cp a, SCRN_Y
-        jr nz, .wait_vblank\@
-
-    ;turn LCD off
-        xor a
-        ld [rLCDC], a
 endm
 
 macro InitPallettes
@@ -311,4 +275,5 @@ BGTileMap:
     db  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
 export InitGraphicsData

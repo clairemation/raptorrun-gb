@@ -6,6 +6,7 @@ include "pad.inc"
 
 rsset _RAM
 
+def WRAM_GAME_STATE rb 1
 def WRAM_PLAYER_STRUCT rb sizeof_PLAYER_STRUCT
 def WRAM_PAD_INPUT rb sizeof_PAD_INPUT
 def WRAM_SCROLL_X rb 1
