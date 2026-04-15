@@ -119,7 +119,7 @@ macro EnableLCD
     ld [rLCDC], a
 endm
 
-section "graphics", rom0
+section "graphics", romx, bank[1]
     InitGraphicsData:
         DisableLCD
 
@@ -151,7 +151,7 @@ section "graphics", rom0
         ret
 
 
-section "sprites_data", rom0[SPRITES_ROM_START]
+section "sprites_data", romx[SPRITES_ROM_START], bank[1]
 SpritesData:
     DB $00,$00,$00,$00,$00,$00,$00,$00
     DB $00,$00,$C0,$C0,$E1,$E1,$73,$73
@@ -186,7 +186,7 @@ SpritesData:
     DB $E0,$80,$C0,$00,$80,$00,$00,$80
     DB $40,$80,$20,$40,$18,$20,$00,$C0
 
-section "bgtiles_data", rom0[BG_TILES_ROM_START]
+section "bgtiles_data", romx[BG_TILES_ROM_START], bank[1]
 BGTilesData:
     DB $00,$00,$00,$00,$00,$00,$00,$00
     DB $00,$00,$00,$00,$00,$00,$00,$00
@@ -315,7 +315,7 @@ BGTilesData:
     DB $FC,$00,$FC,$00,$FC,$00,$FC,$00
     DB $F8,$00,$F0,$00,$E0,$00,$00,$00
 
-section "bgtilemap", rom0[TILEMAP_ROM_START]
+section "bgtilemap", romx[TILEMAP_ROM_START], bank[1]
 BGTileMap:
     db  $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e, $1c, $1e
     db  $1d, $1f, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d
