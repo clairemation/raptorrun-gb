@@ -21,8 +21,9 @@ def WRAM_FADE_FRAME_COUNTDOWN   rb 1
 
 rsset MODE_RAM
 ; level mode
+def WRAM_LEVEL_STATE    rb 1
 def WRAM_PLAYER_STRUCT rb sizeof_PLAYER_STRUCT
-def WRAM_SCROLL_X rb 1
+def WRAM_SCROLL_X   rb 1
 def WRAM_BOUNCER_SPOTS   rb 16
 
 

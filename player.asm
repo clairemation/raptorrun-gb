@@ -6,9 +6,30 @@ include "jump-table.inc"
 
 def PLAYER equ(WRAM_PLAYER_STRUCT)
 
+def STATE_PLAYING   equ(0)
+def STATE_LOST  equ(1)
+
 section "player-logic", rom0
 
 UpdatePlayerGraphics:
+    ; if dying state, draw bg over sprite
+    ld a, [PLAYER + STATE]
+    cp STATE_DYING
+    jr nz, .isDying
+        ld hl, _OAMRAM + OAMA_FLAGS
+        set 7, [hl]
+        ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+        ; inc hl ; + 2 for next sprite
+        set 7, [hl]
+        jr .dyingComparisonDone
+    .isDying
+        ld hl, _OAMRAM + OAMA_FLAGS
+        res 7, [hl]
+        ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+        ; inc hl ; + 2 for next sprite
+        res 7, [hl]
+    .dyingComparisonDone
+
     ;update player sprite to match state
     ld a, [PLAYER + STATE]
     ld hl, StateSpriteTable
@@ -33,6 +54,8 @@ StateSpriteTable:
     db 4 ;rising
     db 8 ;flapping
     db 12 ;falling
+    db 16 ;dying
+    db 16 ;dead
 
 UpdatePlayerLogic:
     CallJumpTableFunction [PLAYER + STATE], UpdateFuncTable
@@ -44,6 +67,8 @@ UpdateFuncTable:
     dw UpdateRising
     dw UpdateFlapping
     dw UpdateFalling
+    dw UpdateDying
+    dw UpdateDead
 
 
 UpdateOnGround:
@@ -159,7 +184,8 @@ Fall:
             jr .yComparisonDone
         .aIsNotZero
             ;land on ground
-            copy [PLAYER + STATE], STATE_ONGROUND
+            copy [PLAYER + STATE], STATE_DYING
+            copy [WRAM_LEVEL_STATE], STATE_LOST
             jr .yComparisonDone
     .yLessThan120
         ;increment unscaled speed
@@ -168,6 +194,38 @@ Fall:
         ld [PLAYER + SPEED], a
     .yComparisonDone
 
+    ret
+
+UpdateDying:
+    ld a, [PLAYER + SPEED]
+    ld c, a ;unscaled speed
+    sra a
+    sra a
+    sra a
+    ld b, a ;scaled speed
+
+    ld a, [PLAYER + Y_POS]
+    add a, b
+    ld [PLAYER + Y_POS], a    
+
+    ; dec speed, if < 0, change state
+    ld a, c ;unscaled speed
+    sub a, 12
+    jr nc, .overflow
+        copy [PLAYER + SPEED], 0
+        copy [PLAYER + STATE], STATE_DEAD
+        jr .overflowDone
+    .overflow
+        ld [PLAYER + SPEED], a
+    .overflowDone
+    ret
+
+UpdateDead:
+    UpdatePadInput WRAM_PAD_INPUT
+    TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
+    jr nz, .startIsPressed
+        call ResetLevel
+    .startIsPressed
     ret
 
 export UpdatePlayerGraphics, UpdatePlayerLogic

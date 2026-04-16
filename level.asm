@@ -6,6 +6,9 @@ include "player-consts.inc"
 include "random.inc"
 include "game.inc"
 
+def STATE_PLAYING   equ(0)
+def STATE_LOST  equ(1)
+
 section "level", rom0
 
     InitLevel:
@@ -23,6 +26,7 @@ section "level", rom0
 
     ResetLevel:
         ; init player struct
+        copy [WRAM_LEVEL_STATE], STATE_PLAYING
         copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
         copy [WRAM_PLAYER_STRUCT + X_POS], 40
         copy [WRAM_PLAYER_STRUCT + Y_POS], 120
@@ -61,11 +65,15 @@ section "level", rom0
 
         call UpdatePlayerLogic
 
-        ld hl, WRAM_SCROLL_X
-        inc [hl]
+        ld a, [WRAM_LEVEL_STATE]
+        cp STATE_PLAYING
+        jr nz, .isPlayingState
+            ld hl, WRAM_SCROLL_X
+            inc [hl]
+        .isPlayingState
 
         call UpdateBouncers
 
         ret
 
-export InitLevel, UpdateLevel
+export InitLevel, ResetLevel, UpdateLevel
