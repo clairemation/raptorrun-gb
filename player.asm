@@ -12,21 +12,19 @@ def STATE_LOST  equ(1)
 section "player-logic", rom0
 
 UpdatePlayerGraphics:
-    ; if dying state, draw bg over sprite
+    ; if dying or dead state, draw bg over sprite
     ld a, [PLAYER + STATE]
     cp STATE_DYING
-    jr nz, .isDying
+    jr c, .isDying ;state 4 or 5 (redo this if I add more states) 
         ld hl, _OAMRAM + OAMA_FLAGS
         set 7, [hl]
         ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
-        ; inc hl ; + 2 for next sprite
         set 7, [hl]
         jr .dyingComparisonDone
     .isDying
         ld hl, _OAMRAM + OAMA_FLAGS
         res 7, [hl]
         ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
-        ; inc hl ; + 2 for next sprite
         res 7, [hl]
     .dyingComparisonDone
 
@@ -185,7 +183,6 @@ Fall:
         .aIsNotZero
             ;land on ground
             copy [PLAYER + STATE], STATE_DYING
-            copy [WRAM_LEVEL_STATE], STATE_LOST
             jr .yComparisonDone
     .yLessThan120
         ;increment unscaled speed
@@ -208,16 +205,16 @@ UpdateDying:
     add a, b
     ld [PLAYER + Y_POS], a    
 
-    ; dec speed, if < 0, change state
-    ld a, c ;unscaled speed
-    sub a, 12
-    jr nc, .overflow
-        copy [PLAYER + SPEED], 0
+    cp 130
+    jr z, .yGTOrEqualTo130
+    jr nc, .yGTOrEqualTo130
+    jr .yLessThan130
+    .yGTOrEqualTo130
+        copy [PLAYER + Y_POS], 130
         copy [PLAYER + STATE], STATE_DEAD
-        jr .overflowDone
-    .overflow
-        ld [PLAYER + SPEED], a
-    .overflowDone
+        copy [WRAM_LEVEL_STATE], STATE_LOST
+        
+    .yLessThan130
     ret
 
 UpdateDead:
