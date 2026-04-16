@@ -45,7 +45,7 @@ macro EnableLCD
     ld [rLCDC], a
 endm
 
-section "graphics", romx, bank[1]
+section "level-graphics", romx, bank[1]
     InitGraphicsData:
         DisableLCD
 
