@@ -128,34 +128,41 @@ section "level", rom0
     WriteLostMessage:
         halt 
 
-        ld hl, _SCRN0 + TEXT_LINE_0 + 6 ;center at scrnx of 0, eyeballed
+        ; ld hl, _SCRN0 + TEXT_LINE_0 + 6 ;center at scrnx of 0, eyeballed
         
         ; add current scroll x tile
         ld a, [rSCX]
         srl a
         srl a
         srl a
+        
+        add a, 5
+        and a, %00011111
         ld b, a ; scroll x tile
-        ld e, a
-        xor a
-        ld d, a
-        add hl, de
+        ; ld e, a
+        ; xor a
+        ; ld d, a
+        ; add hl, de
 
         ld de, GameOverText
         
-        call WriteMessageAtDEToTileHL
+        ld c, TEXT_LINE_0
 
-        ld hl, _SCRN0 + TEXT_LINE_0 + 32 + 5
+        call WriteMessageAtDEToColumnBAndVerticalOffsetC
 
-        ld a, b ; scroll x tile
-        ld e, a
-        xor a
-        ld d, a
-        add hl, de
+        ; call WriteMessageAtDEToTileHL
 
-        ld de, PressStartText
+        ; ld hl, _SCRN0 + TEXT_LINE_0 + 32 + 5
 
-        call WriteMessageAtDEToTileHL
+        ; ld a, b ; scroll x tile
+        ; ld e, a
+        ; xor a
+        ; ld d, a
+        ; add hl, de
+
+        ; ld de, PressStartText
+
+        ; call WriteMessageAtDEToTileHL
         ret 
 
     WriteMessageAtDEToTileHL:
@@ -164,19 +171,56 @@ section "level", rom0
             ld a, [de]
             cp $3B ; semicolon - sentinal character
             jr z, .endloop
-            cp 20
-            ; jr nz, .space
-            ;     ld a, 0
-            ;     jr .spaceCompareDone
-            ; .space
-            add a, $3f
-            .spaceCompareDone
+            add a, $3f ;offset from ascii value to tile index
             copy [hli], a
             inc de
             jr .loop
         .endloop
         ret
 
+    WriteMessageAtDEToColumnBAndVerticalOffsetC:
+
+        .loop
+            ld a, [de]
+            cp $3B ; semicolon - sentinal character
+            jr z, .endloop
+            add a, $3f ;offset from ascii value to tile index
+            ld [HRAM_SCRATCH_BYTES], a
+
+            ;backup de
+            copy [HRAM_SCRATCH_BYTES + 1], d
+            copy [HRAM_SCRATCH_BYTES + 2], e 
+
+            ;calculate hl
+
+            ld hl, _SCRN0
+            ld a, b
+            ld e, a
+            xor a
+            ld d, a
+            add hl, de
+
+            ld e, c
+            xor a
+            ld d, a
+            add hl, de
+
+            ; now hl = position if at row 1
+
+            copy [hl], [HRAM_SCRATCH_BYTES]
+            copy d, [HRAM_SCRATCH_BYTES + 1]
+            copy e, [HRAM_SCRATCH_BYTES + 2]
+
+            inc de
+
+            ld a, b
+            inc a
+            and a, %00011111
+            ld b, a
+
+            jr .loop
+        .endloop
+        ret
 
     LoseLevel:
         copy [WRAM_LEVEL_STATE], STATE_LOSING

@@ -26,6 +26,9 @@ def WRAM_PLAYER_STRUCT rb sizeof_PLAYER_STRUCT
 def WRAM_SCROLL_X   rb 1
 def WRAM_BOUNCER_SPOTS   rb 16
 
+rsset _HRAM
+def HRAM_SCRATCH_BYTES  rb 1
+
 
 endc ;WRAM_INC
 
