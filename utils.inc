@@ -19,6 +19,16 @@ macro copy
         ld \1, a
 endm
 
+macro copyHighToMemory
+        ld a, \2
+        ldh \1, a
+endm
+
+macro copyHighFromMemory
+        ldh a, \2
+        ld \1, a
+endm
+
 
 macro AddAtoHL
         ld e, a

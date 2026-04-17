@@ -4,7 +4,7 @@ include "wram.inc"
 include "game.inc"
 
 def TITLE_TILEMAP_SIZE    equ (1024)
-def TITLE_TILESET_SIZE    equ (3184)
+def TITLE_TILESET_SIZE    equ (3712)
 
 def STATE_WAITING   equ(0)
 def STATE_STARTING  equ(1)

@@ -134,7 +134,7 @@ section "level", rom0
         srl a
         srl a
         srl a
-        
+
         add a, 5 ; 5 tiles from left (eyeballed)
         and a, %00011111 ; mask column to wraparound values of 0-31
         ld b, a
@@ -143,10 +143,10 @@ section "level", rom0
         
         ld c, TEXT_LINE_0
 
+        call WriteMessageAtDEToColumnBAndVerticalOffsetC
+
         halt
         nop
-
-        call WriteMessageAtDEToColumnBAndVerticalOffsetC
 
         ld a, [rSCX]
         srl a
@@ -188,7 +188,7 @@ section "level", rom0
             cp $3B ; semicolon - sentinal character
             jr z, .endloop
             add a, $3f ;offset from ascii value to tile index
-            ld [HRAM_SCRATCH_BYTES], a
+            copyHighToMemory [HRAM_SCRATCH_BYTES], a
 
             ;backup de
             copy [HRAM_SCRATCH_BYTES + 1], d
@@ -209,10 +209,13 @@ section "level", rom0
             ld d, a
             add hl, de
 
+            ; load tile
+            ldh a, [HRAM_SCRATCH_BYTES]
+            ld [hl], a
 
-            copy [hl], [HRAM_SCRATCH_BYTES]
-            copy d, [HRAM_SCRATCH_BYTES + 1]
-            copy e, [HRAM_SCRATCH_BYTES + 2]
+            ;restore de
+            copyHighFromMemory d, [HRAM_SCRATCH_BYTES + 1]
+            copyHighFromMemory e, [HRAM_SCRATCH_BYTES + 2]
 
             inc de
 
