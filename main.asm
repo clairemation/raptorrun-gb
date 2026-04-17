@@ -13,6 +13,7 @@ section "header", rom0[ROM_HEADER_ADDRESS]
 
 section "main", rom0[ROM_MAIN_ADDRESS]
     main:
+        ld sp, $cfff ;put sp in top of wram bank 0
         call Init
         .loop
             call Update
