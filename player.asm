@@ -240,7 +240,6 @@ Fall:
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isEmpty
-            PlayLose
             copy [PLAYER + STATE], STATE_DYING
             ret
     .yLessThan120
@@ -269,6 +268,7 @@ UpdateDying:
     jr .yLessThan130
     .yGTOrEqualTo130
         copy [PLAYER + Y_POS], 130
+        PlayLose
         copy [PLAYER + STATE], STATE_DEAD
         call LoseLevel
         
