@@ -2,7 +2,6 @@ include "hardware.inc"
 include "utils.inc"
 include "player-consts.inc"
 include "wram.inc"
-include "jump-table.inc"
 
 def PLAYER equ(WRAM_PLAYER_STRUCT)
 
@@ -212,7 +211,7 @@ UpdateDying:
     .yGTOrEqualTo130
         copy [PLAYER + Y_POS], 130
         copy [PLAYER + STATE], STATE_DEAD
-        copy [WRAM_LEVEL_STATE], STATE_LOST
+        call LoseLevel
         
     .yLessThan130
     ret

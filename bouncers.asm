@@ -108,7 +108,7 @@ macro KillSquashedSkeleton
 endm
 
 section "bouncers", rom0
-
+    ;TODO: Update only on change
     UpdateBouncerGraphics:
         ; for each slot in list, render all 4 tiles
         xor a

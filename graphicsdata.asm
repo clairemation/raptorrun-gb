@@ -16,6 +16,13 @@ macro LoadBGTileMapIntoVRAM
     LoadSeriesOfBytes BGTileMap, ROM_END, $9800
 endm
 
+macro LoadFontTilesetIntoVRAM
+    copy [rROMB0], 3
+    LoadSeriesOfBytes FontTiles, ROM_END, $8800 ;load into block 2
+    copy [rROMB0], 1
+
+endm
+
 ; clear the OAM
 macro InitOAM
     ld c, OAM_COUNT
@@ -45,13 +52,15 @@ macro EnableLCD
     ld [rLCDC], a
 endm
 
-section "level-graphics", romx, bank[1]
+section "level-graphics", rom0
     InitGraphicsData:
         DisableLCD
 
         LoadSpriteDataIntoVRAM
         LoadBGDataIntoVRAM
         LoadBGTileMapIntoVRAM
+
+        LoadFontTilesetIntoVRAM
 
         InitOAM
 
@@ -76,42 +85,16 @@ section "level-graphics", romx, bank[1]
 
         ret
 
+section "text", rom0
+GameOverText:
+    db "GAME OVER;"
+PressStartText:
+    db "PRESS START;"
+
 
 section "sprites_data", romx[SPRITES_ROM_START], bank[1]
 SpritesData:
     incbin "graphics/sprites.bin"
-    ; DB $00,$00,$00,$00,$00,$00,$00,$00
-    ; DB $00,$00,$C0,$C0,$E1,$E1,$73,$73
-    ; DB $1F,$1F,$07,$07,$03,$03,$06,$06
-    ; DB $04,$04,$00,$04,$00,$02,$00,$01
-    ; DB $1C,$1C,$3C,$37,$3C,$3F,$1C,$18
-    ; DB $1C,$18,$78,$70,$F8,$F0,$D8,$E0
-    ; DB $B0,$C0,$A0,$C0,$80,$C0,$00,$C0
-    ; DB $00,$40,$00,$40,$00,$20,$00,$10
-    ; DB $00,$00,$00,$00,$00,$00,$1F,$1F
-    ; DB $7F,$7F,$01,$07,$00,$07,$00,$07
-    ; DB $0F,$0F,$7F,$7F,$E7,$E6,$CF,$CC
-    ; DB $C8,$DA,$00,$16,$00,$34,$00,$24
-    ; DB $00,$00,$00,$00,$00,$00,$1C,$1C
-    ; DB $3C,$37,$3C,$3F,$FC,$F0,$F8,$E0
-    ; DB $F0,$80,$C0,$00,$80,$00,$00,$00
-    ; DB $00,$00,$00,$00,$00,$00,$00,$00
-    ; DB $00,$00,$00,$00,$00,$00,$00,$00
-    ; DB $00,$00,$81,$83,$CF,$CF,$7F,$7F
-    ; DB $0F,$0F,$0B,$0F,$29,$19,$01,$21
-    ; DB $40,$20,$20,$40,$00,$00,$00,$00
-    ; DB $00,$00,$00,$00,$1C,$1C,$3E,$36
-    ; DB $3C,$3F,$F4,$FB,$F8,$E0,$F0,$E0
-    ; DB $E0,$E0,$E0,$E0,$E0,$E0,$F0,$F0
-    ; DB $F0,$F0,$F8,$F8,$78,$78,$18,$18
-    ; DB $08,$78,$0C,$3C,$06,$1E,$02,$1E
-    ; DB $02,$1F,$01,$1F,$00,$0F,$88,$C7
-    ; DB $E7,$E7,$7F,$7F,$0F,$06,$07,$06
-    ; DB $02,$06,$00,$02,$00,$03,$00,$01
-    ; DB $00,$00,$1C,$1C,$3E,$34,$38,$3E
-    ; DB $3B,$7C,$F0,$F8,$E0,$F0,$E0,$C0
-    ; DB $E0,$80,$C0,$00,$80,$00,$00,$80
-    ; DB $40,$80,$20,$40,$18,$20,$00,$C0
 
 section "bgtiles_data", romx[BG_TILES_ROM_START], bank[1]
 BGTilesData:
@@ -277,4 +260,8 @@ BGTileMap:
     db  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-export InitGraphicsData
+section "fonttiles", romx[FONT_TILESET_START], bank[3]
+FontTiles:
+    incbin "graphics/font.bin"
+
+export InitGraphicsData, GameOverText, PressStartText
