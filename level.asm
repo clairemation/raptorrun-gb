@@ -32,8 +32,11 @@ section "level", rom0
         copy [WRAM_GAME_STATE], STATE_LEVEL
         copy [rROMB0], 1
         call InitGraphicsData
+
         ;enable lcd
         ld [rLCDC], a
+
+        call InitPlayer
 
         call ResetLevel
 

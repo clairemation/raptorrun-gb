@@ -8,7 +8,50 @@ def PLAYER equ(WRAM_PLAYER_STRUCT)
 def STATE_PLAYING   equ(0)
 def STATE_LOST  equ(1)
 
+macro PlayFlap
+    copy [rNR41], $33
+    copy [rNR42], $f0
+    copy [rNR43], $80
+    copy [rNR44], $c0
+endm
+
+macro PlayBounce
+    copy [rNR10], $14
+    copy [rNR11], $4c
+    copy [rNR12], $f1
+    copy [rNR13], $9d
+    copy [rNR14], $c0
+endm
+
+macro PlayCrunch
+    copy [rNR41], $14
+    copy [rNR42], $f1
+    copy [rNR43], $52
+    copy [rNR44], $c0
+endm
+
+macro PlayFernCrunch
+    copy [rNR41], $00
+    copy [rNR42], $f1
+    copy [rNR43], $40
+    copy [rNR44], $c0
+endm
+
+macro PlayLose
+    copy [rNR10], $1c
+    copy [rNR11], $c0
+    copy [rNR12], $f7
+    copy [rNR13], $3c
+    copy [rNR14], $c5
+endm
+
 section "player-logic", rom0
+
+InitPlayer:
+    ; copy [rNR52], AUDENA_ON
+    ; copy [rNR50], $77
+    ; copy [rNR51], $ff
+    ret
 
 UpdatePlayerGraphics:
     ; if dying or dead state, draw bg over sprite
@@ -128,7 +171,8 @@ UpdateFalling:
     jr nz, .jumpIsPressed
         copy [PLAYER + SPEED], 0
         copy [PLAYER + FLAP_COOLDOWN], 6
-        copy [PLAYER + STATE], STATE_FLAPPING    
+        copy [PLAYER + STATE], STATE_FLAPPING
+        PlayFlap    
     .jumpIsPressed
     call Fall
     ret
@@ -150,7 +194,7 @@ Fall:
     cp 120
     jr z, .yGTOrEqualTo120
     jr nc, .yGTOrEqualTo120
-    jr .yLessThan120
+    jp .yLessThan120
     .yGTOrEqualTo120
         copy [PLAYER + Y_POS], 120
         
@@ -171,24 +215,39 @@ Fall:
         add hl, de ; WRAM_BOUNCER_SPOTS + player slot X
 
         ld a, [hl]
-        ; if a != 0
         and a
-        jr z, .aIsNotZero
-            ;bounce
+
+        cp a, $08 ;trike
+        jr z, .isTrike
+        cp a, $0c
+        jr z, .isSkeleton
+        cp a, $14
+        jr z, .isFern
+        jr .isEmpty
+        .isTrike
+            PlayBounce
+            jr .isBouncer
+        .isSkeleton
+            PlayCrunch
+            call SquashBouncerAtHL
+            jr .isBouncer
+        .isFern
+            PlayFernCrunch
+            call SquashBouncerAtHL
+            jr .isBouncer
+        .isBouncer
             copy [PLAYER + SPEED], 40
             copy [PLAYER + STATE], STATE_RISING
-            call SquashBouncerAtHL
-            jr .yComparisonDone
-        .aIsNotZero
-            ;land on ground
+            ret
+        .isEmpty
+            PlayLose
             copy [PLAYER + STATE], STATE_DYING
-            jr .yComparisonDone
+            ret
     .yLessThan120
         ;increment unscaled speed
         ld a, c
         inc a
         ld [PLAYER + SPEED], a
-    .yComparisonDone
 
     ret
 
@@ -224,4 +283,4 @@ UpdateDead:
     .startIsPressed
     ret
 
-export UpdatePlayerGraphics, UpdatePlayerLogic
+export InitPlayer, UpdatePlayerGraphics, UpdatePlayerLogic

@@ -29,8 +29,17 @@ macro WaitForStartPress
     UpdatePadInput WRAM_PAD_INPUT
     TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
     jr nz, .startIsPressed\@
+        PlayStartSound
         copy [WRAM_TITLESCREEN_STATE], STATE_STARTING
     .startIsPressed\@
+endm
+
+macro PlayStartSound
+    copy [rNR10], $15
+    copy [rNR11], $80
+    copy [rNR12], $f8
+    copy [rNR13], $0b
+    copy [rNR14], $c5
 endm
 
 section "titlescreen", rom0
@@ -94,6 +103,10 @@ InitTitleScreen:
     ld a, IEF_VBLANK
     ld [rIE], a
 
+    copy [rNR52], AUDENA_ON
+    copy [rNR50], $77
+    copy [rNR51], $ff
+    
     ei
 
     ret 

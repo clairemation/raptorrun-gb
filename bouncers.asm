@@ -169,12 +169,8 @@ section "bouncers", rom0
 
     SquashBouncerAtHL:
         ld a, [hl]
-        and a
-        cp $08
-        jr z, .isNotTrike ;don't squash trike
-            add a, 4
-            ld [hl], a
-        .isNotTrike
+        add a, 4
+        ld [hl], a
         ret
 
 
