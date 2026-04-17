@@ -10,7 +10,7 @@ def STATE_PLAYING   equ(0)
 def STATE_LOSING  equ(1)
 def STATE_LOST  equ (2)
 
-def TEXT_LINE_0 equ (32 * 7)
+def TEXT_LINE_0 equ (32 * 6)
 
 macro ClearTextLines
     ; clear text lines
@@ -127,8 +127,7 @@ section "level", rom0
 
     WriteLostMessage:
         halt 
-
-        ; ld hl, _SCRN0 + TEXT_LINE_0 + 6 ;center at scrnx of 0, eyeballed
+        nop
         
         ; add current scroll x tile
         ld a, [rSCX]
@@ -136,33 +135,36 @@ section "level", rom0
         srl a
         srl a
         
-        add a, 5
-        and a, %00011111
-        ld b, a ; scroll x tile
-        ; ld e, a
-        ; xor a
-        ; ld d, a
-        ; add hl, de
+        add a, 5 ; 5 tiles from left (eyeballed)
+        and a, %00011111 ; mask column to wraparound values of 0-31
+        ld b, a
 
         ld de, GameOverText
         
         ld c, TEXT_LINE_0
 
+        halt
+        nop
+
         call WriteMessageAtDEToColumnBAndVerticalOffsetC
 
-        ; call WriteMessageAtDEToTileHL
+        ld a, [rSCX]
+        srl a
+        srl a
+        srl a
+        
+        add a, 4 ; 4 tiles from left (eyeballed)
+        and a, %00011111 ; mask column to wraparound values of 0-31
+        ld b, a
 
-        ; ld hl, _SCRN0 + TEXT_LINE_0 + 32 + 5
+        ld de, PressStartText
 
-        ; ld a, b ; scroll x tile
-        ; ld e, a
-        ; xor a
-        ; ld d, a
-        ; add hl, de
+        ld a, TEXT_LINE_0
+        add a, 32
+        ld c, a
 
-        ; ld de, PressStartText
+        call WriteMessageAtDEToColumnBAndVerticalOffsetC
 
-        ; call WriteMessageAtDEToTileHL
         ret 
 
     WriteMessageAtDEToTileHL:
@@ -178,6 +180,7 @@ section "level", rom0
         .endloop
         ret
 
+    ; use when screen scroll is wrapping around
     WriteMessageAtDEToColumnBAndVerticalOffsetC:
 
         .loop
@@ -193,19 +196,19 @@ section "level", rom0
 
             ;calculate hl
 
+            ; add tile base to x position
             ld hl, _SCRN0
-            ld a, b
-            ld e, a
+            ld e, b
             xor a
             ld d, a
             add hl, de
 
+            ; add y offset
             ld e, c
             xor a
             ld d, a
             add hl, de
 
-            ; now hl = position if at row 1
 
             copy [hl], [HRAM_SCRATCH_BYTES]
             copy d, [HRAM_SCRATCH_BYTES + 1]
@@ -215,7 +218,7 @@ section "level", rom0
 
             ld a, b
             inc a
-            and a, %00011111
+            and a, %00011111 ;keep column masked to wraparound values of 0-31
             ld b, a
 
             jr .loop
