@@ -19,26 +19,7 @@ macro PopulateNextBouncerSlot
     ;;;; add slot to update list
     ld b, a ;spot index
 
-    ld a, [WRAM_NUM_BOUNCERS_TO_UPDATE] ;index in WRAM list
-    ld c, a
-    ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
-    ld e, a
-    xor a
-    ld d, a
-    add hl, de
-
-
-    ld a, b ;spot index
-
-    ld [hli], a ;add bouncer index to update list
-    ld [hl], $ff ;eol sentinal value
-
-    ;increment list count
-    ld b, a ;slot index
-    ld a, c ;update list count
-    inc a
-    ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
-    ;;;;;;;;;;;
+    call AddIndexBToUpdateList
 
     ;;;;;;;; update slot
 
@@ -112,6 +93,7 @@ macro Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
     copy [hl], a
 endm
 
+;TODO: replace
 macro KillSquashedSkeleton
     ;get second-leftmost bouncer slot index, e.g. scrollx / 16
     ld a, [WRAM_SCROLL_X]
@@ -119,6 +101,10 @@ macro KillSquashedSkeleton
     srl a
     srl a
     srl a
+
+    ld b, a
+
+    call AddIndexBToUpdateList
 
     ; add index to slot base to get slot address
     ld hl, WRAM_BOUNCER_SPOTS
@@ -209,7 +195,7 @@ section "bouncers", rom0
 
             PopulateNextBouncerSlot
 
-            KillSquashedSkeleton
+            ; KillSquashedSkeleton
 
         .isOnSlotBorder
         ret
@@ -220,7 +206,11 @@ section "bouncers", rom0
         ld [hl], a
 
         ;add to update list
+        call AddIndexBToUpdateList
 
+        ret
+
+    AddIndexBToUpdateList:
         ;get list element address
         ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
         ld a, [WRAM_NUM_BOUNCERS_TO_UPDATE]
@@ -237,8 +227,8 @@ section "bouncers", rom0
         ld [hli], a
         ld [hl], $ff ;eol
 
-
         ret
+
 
 
 export InitBouncerLogic, UpdateBouncerGraphics, UpdateBouncers, SquashBouncerAtHLInIndexB
