@@ -29,6 +29,15 @@ macro ClearTextLines
         jr nz, .eraseScreenLoop\@
 endm
 
+macro CheckForOutOfVBlank
+    ld a, [rLY]
+    cp 144
+    jr nc, .outOfVblank\@
+        ld b,b
+    .outOfVblank\@
+    ld [HRAM_SCRATCH_BYTES], a
+endm
+
 section "level", rom0
 
     InitLevel:
@@ -58,7 +67,7 @@ section "level", rom0
     
 
     ResetLevel:
-        halt
+        call WaitForVBlank
 
         ClearTextLines
         
@@ -71,14 +80,6 @@ section "level", rom0
         copy [WRAM_PLAYER_STRUCT + Y_POS], 120
         copy [WRAM_PLAYER_STRUCT + SPEED], 40
 
-        ; initialize bouncer list
-        ld hl, WRAM_BOUNCER_SPOTS
-        ld b, 16
-        .loop
-            copy [hli], 0
-            dec b
-            jr nz, .loop
-
 
         ;; init random seed
         copy [WRAM_RANDOM], 1
@@ -88,7 +89,7 @@ section "level", rom0
 
         call InitScreenFade
 
-            ret
+        ret
 
     UpdateLevel:
         ;wait for vblank
@@ -97,7 +98,7 @@ section "level", rom0
         ;;;;;; graphics ;;;;;;
 
         call UpdatePlayerGraphics
-        
+    
         CallJumpTableFunction [WRAM_LEVEL_STATE], UpdateGraphicsFuncTable
 
         ;;;;;; logic ;;;;;;
@@ -147,7 +148,7 @@ section "level", rom0
 
     UpdateScrollGraphics:
         copy [rSCX], [WRAM_SCROLL_X_TOP]
-
+        
         call UpdateBouncerGraphics
         ret
 

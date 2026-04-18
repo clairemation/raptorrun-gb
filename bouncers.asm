@@ -126,9 +126,28 @@ endm
 
 section "bouncers", rom0
     InitBouncerLogic:
-        copy [WRAM_BOUNCER_INDICES_TO_UPDATE], $ff
+        ; initialize bouncer list
+        ld hl, WRAM_BOUNCER_SPOTS
+        ld b, 16
+        .loop
+            copy [hli], 0
+            dec b
+            jr nz, .loop
+        
+        ; add first 11 slots to update list to clear them
+        ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
         xor a
-        ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
+        ld b, a
+        .clearFirstTenSlotsLoop
+            copy [hli], b
+            inc b
+            ld a, b
+            cp 11
+            jr nz, .clearFirstTenSlotsLoop
+
+        copy [hl], $ff
+        copy [WRAM_NUM_BOUNCERS_TO_UPDATE], 11
+
         ret
 
     ;TODO: Update only on change
@@ -137,6 +156,7 @@ section "bouncers", rom0
         ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
 
         .bouncerUpdateLoop
+
             ;loop through update list
             
             ld a, [hl]
@@ -175,14 +195,13 @@ section "bouncers", rom0
             Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
 
             pop hl ;update list
-            ld a, $ff
-            ld [hl], a ;erase update list entry
             inc hl
             jr .bouncerUpdateLoop
 
         .bouncerUpdateLoopFinished
         xor a
         ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
+        copy [WRAM_BOUNCER_INDICES_TO_UPDATE], $ff
 
         ret
 

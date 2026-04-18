@@ -55,6 +55,7 @@ InitPlayer:
 
 UpdatePlayerGraphics:
     ; if dying or dead state, draw bg over sprite
+    ; todo: do i undo this anywhere?
     ld a, [PLAYER + STATE]
     cp STATE_DYING
     jr c, .isDying ;state 4 or 5 (redo this if I add more states) 
@@ -87,6 +88,7 @@ UpdatePlayerGraphics:
     ; update sprite position
     copy [_OAMRAM + OAMA_Y], [PLAYER + Y_POS]
     copy [_OAMRAM + sizeof_OAM_ATTRS + OAMA_Y], [PLAYER + Y_POS]
+    
     ret
 
 StateSpriteTable:
