@@ -214,11 +214,31 @@ section "bouncers", rom0
         .isOnSlotBorder
         ret
 
-    SquashBouncerAtHL:
+    SquashBouncerAtHLInIndexB:
         ld a, [hl]
         add a, 4
         ld [hl], a
+
+        ;add to update list
+
+        ;get list element address
+        ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
+        ld a, [WRAM_NUM_BOUNCERS_TO_UPDATE]
+        ld e, a
+        xor a
+        ld d, a
+        add hl, de ;address of update list element
+
+        ;update list length
+        inc a
+        ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
+
+        ld a, b ;index
+        ld [hli], a
+        ld [hl], $ff ;eol
+
+
         ret
 
 
-export InitBouncerLogic, UpdateBouncerGraphics, UpdateBouncers, SquashBouncerAtHL
+export InitBouncerLogic, UpdateBouncerGraphics, UpdateBouncers, SquashBouncerAtHLInIndexB

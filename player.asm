@@ -207,6 +207,8 @@ Fall:
         srl a
         srl a
 
+        ld b, a ;slot index
+
         ; check bouncer slot list
         ld hl, WRAM_BOUNCER_SPOTS
         ld e, a
@@ -229,11 +231,11 @@ Fall:
             jr .isBouncer
         .isSkeleton
             PlayCrunch
-            call SquashBouncerAtHL
+            call SquashBouncerAtHLInIndexB
             jr .isBouncer
         .isFern
             PlayFernCrunch
-            call SquashBouncerAtHL
+            call SquashBouncerAtHLInIndexB
             jr .isBouncer
         .isBouncer
             copy [PLAYER + SPEED], 40
