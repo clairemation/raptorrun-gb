@@ -61,6 +61,8 @@ section "level", rom0
         halt
 
         ClearTextLines
+        
+        call InitBouncerLogic
 
         ; init player struct
         copy [WRAM_LEVEL_STATE], STATE_PLAYING

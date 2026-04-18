@@ -10,23 +10,50 @@ macro PopulateNextBouncerSlot
     ld a, b
     ; add width of screen
     add a, 160
-    ; divide by 8 to get scroll tile
+    ; divide by 16 to get slot index
+    srl a
     srl a
     srl a
     srl a
 
-    ld b, a ; x tile
+    ;;;; add slot to update list
+    ld b, a ;spot index
 
-    ;get bouncer slot address
+    ld a, [WRAM_NUM_BOUNCERS_TO_UPDATE] ;index in WRAM list
+    ld c, a
+    ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
+    ld e, a
+    xor a
+    ld d, a
+    add hl, de
+
+
+    ld a, b ;spot index
+
+    ld [hli], a ;add bouncer index to update list
+    ld [hl], $ff ;eol sentinal value
+
+    ;increment list count
+    ld b, a ;slot index
+    ld a, c ;update list count
+    inc a
+    ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
+    ;;;;;;;;;;;
+
+    ;;;;;;;; update slot
+
+    ;get slot address
+    ld a, b ;slot index
+    
     ld hl, WRAM_BOUNCER_SPOTS
+    
     ; add spot index to hl
-    ld a, b ; 8x8 x tile
-    srl a ; /2 to get 16x16 spot index
     ld e, a
     xor a
     ld d, a
     add hl, de ; hl = spot address
 
+    ;roll for next bouncer tile
     GetNextRandomValue WRAM_RANDOM
     cp 50
         jr c, .isTrike\@
@@ -37,23 +64,27 @@ macro PopulateNextBouncerSlot
     jr .isEmpty\@
     
     .isTrike\@
-        copy [hli], $08
+        ld a, $08
         jr .randomComparisonDone\@
     .isSkeleton\@
-        copy [hli], $0C
+        ld a, $0C
         jr .randomComparisonDone\@
     .isFern\@
-        copy [hli], $14
+        ld a, $14
         jr .randomComparisonDone\@
     .isEmpty\@
-        copy [hli], $00
+        ld a, $00
         jr .randomComparisonDone\@
     .randomComparisonDone\@
+
+    ; load tile to slot address
+    ld [hl], a
 endm
 
 ;TODO: Fix bug where tile 1 and 3 get wrong id on last space
 ;uses c
 macro Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
+
     ; 1 3
     ; 2 4
     ld c, a
@@ -108,46 +139,64 @@ macro KillSquashedSkeleton
 endm
 
 section "bouncers", rom0
+    InitBouncerLogic:
+        copy [WRAM_BOUNCER_INDICES_TO_UPDATE], $ff
+        xor a
+        ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
+        ret
+
     ;TODO: Update only on change
     UpdateBouncerGraphics:
-        ; for each slot in list, render all 4 tiles
-        xor a
-        ld b, a ; bouncer slot list index
 
-        .drawSlotLoop
-            ; get bouncer list item address
-            ld a, b ; bouncer list index
+        ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
+
+        .bouncerUpdateLoop
+            ;loop through update list
+            
+            ld a, [hl]
+
+            cp $ff ;eol sentinel
+            jr z, .bouncerUpdateLoopFinished
+            
+            push hl ;bouncer update list
+            ld b, a ;bouncer slot index
+            
+            ;get address of new bouncer
             ld hl, WRAM_BOUNCER_SPOTS
             ld e, a
             xor a
             ld d, a
-            add hl, de
+            add hl, de ;hl = slot address of new bouncer
 
-            ; load bouncer tile
-            ld a, [hl]
-
-            ld c, a ; bouncer tile
-
-            ld a, b
+            ld a, [hl] ;a = new bouncer tile
+            ld c, a ;c = new bouncer tile
 
             ld hl, TILEMAP_BASE_ADDRESS
 
+            ld a, b ;bouncer slot index
             sla a ; x2 to get 8x8 tile index
+            
             ld e, a
             xor a
             ld d, a
-            add hl, de
+            add hl, de ;hl = tilemap slot address x
 
             ld de, $01c0 ; vertical tiles
-            add hl, de
+            add hl, de ;hl = final tilemap slot addy
 
-            ld a, c ; bouncer tile
-            Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL ; uses c
+            ld a, c ;bouncer tile
 
-            inc b
-            ld a, b
-            cp a, 16
-            jr nz, .drawSlotLoop
+            Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
+
+            pop hl ;update list
+            ld a, $ff
+            ld [hl], a ;erase update list entry
+            inc hl
+            jr .bouncerUpdateLoop
+
+        .bouncerUpdateLoopFinished
+        xor a
+        ld [WRAM_NUM_BOUNCERS_TO_UPDATE], a
 
         ret
 
@@ -172,4 +221,4 @@ section "bouncers", rom0
         ret
 
 
-export UpdateBouncerGraphics, UpdateBouncers, SquashBouncerAtHL
+export InitBouncerLogic, UpdateBouncerGraphics, UpdateBouncers, SquashBouncerAtHL
