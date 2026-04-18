@@ -81,7 +81,6 @@ section "level-graphics", rom0
         ld [rSCY], a
 
         InitPallettes
-        SetGraphicsParameters
 
         ret
 

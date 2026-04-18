@@ -1,3 +1,5 @@
+include "wram.inc"
+
 section "utils", rom0
 
 LoadBytesToHLFromBCToDE:
@@ -20,4 +22,17 @@ LoadBytesToHLFromBCToDE:
         .checkOver
     ret
 
-export LoadBytesToHLFromBCToDE
+WaitForVBlank:
+.haltLoop
+    halt 
+    nop
+    ld a, [WRAM_IS_VBLANK]
+    cp 0
+    jr z, .haltLoop
+
+    xor a
+    ld [WRAM_IS_VBLANK], a
+    
+ret
+
+export LoadBytesToHLFromBCToDE, WaitForVBlank

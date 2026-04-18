@@ -10,11 +10,9 @@ def STATE_WAITING   equ(0)
 def STATE_STARTING  equ(1)
 
 def PALETTE_0  equ(%11100100)
-def PALETTE_1  equ(%11111001)
-def PALETTE_2  equ(%11111110)
-def PALETTE_3  equ(%11111111)
-
-def FADE_ANIMATION_FRAMES   equ(4)
+; def PALETTE_1  equ(%11111001)
+; def PALETTE_2  equ(%11111110)
+; def PALETTE_3  equ(%11111111)
 
 macro InitPallettes
     ; init the palettes
@@ -46,9 +44,8 @@ section "titlescreen", rom0
 InitTitleScreen:
     copy [WRAM_GAME_STATE], 0
     copy [WRAM_TITLESCREEN_STATE], STATE_WAITING
-    copy [WRAM_PALETTE_NUM], 0
-    copy [WRAM_CURRENT_PALETTE], PALETTE_0
-    copy [WRAM_FADE_FRAME_COUNTDOWN], 8
+    call InitScreenFade
+
     DisableLCD
 
     copy [rROMB0], 2
@@ -130,46 +127,22 @@ UpdateTitleScreen:
     ld a, [WRAM_TITLESCREEN_STATE]
     cp STATE_WAITING ;waiting
     jr nz, .stateWaiting
-        ; check for start button press
         WaitForStartPress
         ret
     .stateWaiting
 
-    ;starting state
+    ;starting state - fade out
 
-    ld a, [WRAM_FADE_FRAME_COUNTDOWN]
+    call UpdateScreenFade
+
+    ; continue loop if fade is active
+    ld a, [WRAM_FADE_IS_ACTIVE]
     cp 0
-    jr z, .countdownContinues
-        dec a
-        ld [WRAM_FADE_FRAME_COUNTDOWN], a
-        ret
-    .countdownContinues
-
-    ;countdown is over
-
-    ld a, [WRAM_PALETTE_NUM]
-    inc a
-    ld [WRAM_PALETTE_NUM], a
-    cp 3
-    jr nc, .paletteShiftStillHappening
-        ld hl, Palettes
-        ld e, a
-        xor a
-        ld d, a
-        add hl, de
-        ld a, [hl]
-        ld [WRAM_CURRENT_PALETTE], a
-        copy [WRAM_FADE_FRAME_COUNTDOWN], FADE_ANIMATION_FRAMES
-        ret
-    .paletteShiftStillHappening
-        call InitLevel
+    ret nz
+        
+    ;else call init level (ending the loop)
+    call InitLevel
     ret
-
-Palettes:
-    db PALETTE_0
-    db PALETTE_1
-    db PALETTE_2
-    db PALETTE_3
 
 
 section "title-tileset", romx, bank[2]

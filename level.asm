@@ -6,9 +6,12 @@ include "player-consts.inc"
 include "random.inc"
 include "game.inc"
 
-def STATE_PLAYING   equ(0)
-def STATE_LOSING  equ(1)
-def STATE_LOST  equ (2)
+rsreset
+def STATE_RESETTING rb 1
+def STATE_PLAYING   rb 1
+def STATE_LOSING  rb 1
+def STATE_WRITING_LOSE_MESSAGE  rb 1
+def STATE_LOST  rb 1
 
 def TEXT_LINE_0 equ (32 * 6)
 
@@ -33,7 +36,15 @@ section "level", rom0
         copy [rROMB0], 1
         call InitGraphicsData
 
+        ;setup linecompare interrupts
+        copy [rLYC], 255
+        xor a
+        ld [rSTAT], a
+        ld a, IEF_VBLANK | IEF_LCDC
+        ld [rIE], a
+
         ;enable lcd
+        ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON
         ld [rLCDC], a
 
         call InitPlayer
@@ -71,65 +82,126 @@ section "level", rom0
         copy [WRAM_RANDOM], 1
 
         copy [WRAM_SCROLL_X], 0
+        copy [WRAM_TOP_SCROLL_COUNTER], 0
+
+        call InitScreenFade
 
             ret
 
     UpdateLevel:
         ;wait for vblank
-        halt 
-        nop
+        call WaitForVBlank
 
         ;;;;;; graphics ;;;;;;
 
         call UpdatePlayerGraphics
         
-        copy [rSCX], [WRAM_SCROLL_X]
-
-        call UpdateBouncerGraphics
+        CallJumpTableFunction [WRAM_LEVEL_STATE], UpdateGraphicsFuncTable
 
         ;;;;;; logic ;;;;;;
 
         call UpdatePlayerLogic
 
-        CallJumpTableFunction [WRAM_LEVEL_STATE], UpdateFuncTable
+        CallJumpTableFunction [WRAM_LEVEL_STATE], UpdateLogicFuncTable
+
+        ;set up top segment line compare interrupt
+        copy [rLYC], 32
+        copy [rSTAT], STATF_LYC
 
         ret
 
-    UpdateFuncTable:
-        dw UpdatePlaying
-        dw UpdateLosing
-        dw UpdateLost
+    UpdateGraphicsFuncTable:
+        dw UpdateResettingGraphics
+        dw UpdatePlayingGraphics
+        dw UpdateLosingGraphics
+        dw UpdateWritingLoseMessageGraphics
+        dw UpdateLostGraphics
 
-    UpdatePlaying:
+
+    UpdateResettingGraphics:
+        ret
+
+    UpdatePlayingGraphics:
+        call UpdateScrollGraphics
+        
+        ld a, [WRAM_CURRENT_PALETTE]
+        ld [rBGP], a
+        ld [rOBP0], a
+        ret
+
+    UpdateLosingGraphics:
+        call UpdateScrollGraphics
+
+        ld a, [WRAM_CURRENT_PALETTE]
+        ld [rBGP], a
+        ld [rOBP0], a
+        ret 
+
+    UpdateWritingLoseMessageGraphics:
+        ret
+
+    UpdateLostGraphics:
+        ret
+
+    UpdateScrollGraphics:
+        copy [rSCX], [WRAM_SCROLL_X_TOP]
+
+        call UpdateBouncerGraphics
+        ret
+
+    UpdateLogicFuncTable:
+        dw UpdateResettingLogic
+        dw UpdatePlayingLogic
+        dw UpdateLosingLogic
+        dw UpdateWritingLoseMessageLogic
+        dw UpdateLostLogic
+
+    UpdateResettingLogic:
+        ret
+    
+    UpdatePlayingLogic:
+        call Scroll
+        ret 
+
+    UpdateLosingLogic:
+        call Scroll
+        
+        call UpdateScreenFade
+
+        ld a, [WRAM_FADE_IS_ACTIVE]
+        cp 0
+        ret nz
+
+        copy [WRAM_LEVEL_STATE], STATE_LOST
+        ret 
+
+    UpdateWritingLoseMessageLogic:
+        ret
+
+    UpdateLostLogic:
+        ret
+
+    Scroll:
         ld hl, WRAM_SCROLL_X
         inc [hl]
 
-        call UpdateBouncers
-
-        ret 
-
-    UpdateLosing:
-        ;keep scrolling until at tile border
-        ld a, [WRAM_SCROLL_X]
-        ld b, a
-        and a, %00000111 ;scrollx is multiple of 8
-        cp 0
-        jr nz, .isAtTileBorder
-            call WriteLostMessage
-            copy [WRAM_LEVEL_STATE], STATE_LOST
-            ret
-        .isAtTileBorder
-        ld a, b
+        ld a, [WRAM_TOP_SCROLL_COUNTER]
         inc a
-        ld [WRAM_SCROLL_X], a
-        call UpdateBouncers
-        ret 
+        ld [WRAM_TOP_SCROLL_COUNTER], a
 
-    UpdateLost:
+        and a, %00000011 ;every four frames
+
+        jr nz, .every4thFrame
+            ld a, [WRAM_SCROLL_X_TOP]
+            inc a
+            ld [WRAM_SCROLL_X_TOP], a
+        .every4thFrame
+
+        call UpdateBouncers
         ret
 
     WriteLostMessage:
-        halt 
+        call WaitForVBlank
         nop
         
         ; add current scroll x tile
@@ -148,7 +220,7 @@ section "level", rom0
 
         call WriteMessageAtDEToColumnBAndVerticalOffsetC
 
-        halt
+        call WaitForVBlank
         nop
 
         ld a, [rSCX]
@@ -233,19 +305,32 @@ section "level", rom0
 
     LoseLevel:
         copy [WRAM_LEVEL_STATE], STATE_LOSING
-
-        ; ld de, $3000
-        ; xor a
-        ; .loop
-        ;     ld a, [de]
-        ;     cp 0
-        ;     jr z, .endloop
-        ;     add a, $3f
-        ;     copy [_SCRN0], a
-        ;     inc de
-
-        ; .endloop
-
         ret 
 
-export InitLevel, ResetLevel, UpdateLevel, LoseLevel
+    LCDInterrupt:
+        ;check if on target line
+        ld a, [rSTAT]
+        bit 2, a
+        ret z
+
+        ld b, a
+
+        ;enable next hblank
+        copy [rSTAT], STATF_MODE00
+
+        ;check for current hblank
+        ld a, b
+        and a, 3
+        ret nz
+
+        ;draw normal section scroll
+        copy [rSCX], [WRAM_SCROLL_X]
+
+        ;turn hblank and line interrupts off
+        copy [rLYC], 255
+        xor a
+        ld [rSTAT], a
+
+        ret
+
+export InitLevel, ResetLevel, UpdateLevel, LoseLevel, LCDInterrupt
