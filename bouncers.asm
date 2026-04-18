@@ -51,8 +51,8 @@ macro PopulateNextBouncerSlot
     .randomComparisonDone\@
 endm
 
-;TODO: Fix bug where sometimes tile 4 gets wrong tile id
-    ;uses c
+;TODO: Fix bug where tile 1 and 3 get wrong id on last space
+;uses c
 macro Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
     ; 1 3
     ; 2 4
@@ -164,8 +164,6 @@ section "bouncers", rom0
 
         .isOnSlotBorder
         ret
-
-
 
     SquashBouncerAtHL:
         ld a, [hl]
