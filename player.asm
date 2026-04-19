@@ -280,11 +280,6 @@ UpdateDying:
     ret
 
 UpdateDead:
-    UpdatePadInput WRAM_PAD_INPUT
-    TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
-    jr nz, .startIsPressed
-        call ResetLevel
-    .startIsPressed
     ret
 
 export InitPlayer, UpdatePlayerGraphics, UpdatePlayerLogic

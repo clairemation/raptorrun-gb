@@ -67,27 +67,8 @@ section "level", rom0
     
 
     ResetLevel:
-        call WaitForVBlank
-
-        ClearTextLines
-        
-        call InitBouncerLogic
-
-        ; init player struct
-        copy [WRAM_LEVEL_STATE], STATE_PLAYING
-        copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
-        copy [WRAM_PLAYER_STRUCT + X_POS], 40
-        copy [WRAM_PLAYER_STRUCT + Y_POS], 120
-        copy [WRAM_PLAYER_STRUCT + SPEED], 40
-
-
-        ;; init random seed
-        copy [WRAM_RANDOM], 1
-
-        copy [WRAM_SCROLL_X], 0
-        copy [WRAM_TOP_SCROLL_COUNTER], 0
-
-        call InitScreenFade
+        copy [WRAM_LEVEL_STATE], STATE_RESETTING
+        copy [WRAM_RESET_STAGE], 0
 
         ret
 
@@ -102,8 +83,6 @@ section "level", rom0
         CallJumpTableFunction [WRAM_LEVEL_STATE], UpdateGraphicsFuncTable
 
         ;;;;;; logic ;;;;;;
-
-        call UpdatePlayerLogic
 
         CallJumpTableFunction [WRAM_LEVEL_STATE], UpdateLogicFuncTable
 
@@ -122,6 +101,20 @@ section "level", rom0
 
 
     UpdateResettingGraphics:
+        ld a, [WRAM_RESET_STAGE]
+        cp 0
+        jr nz, .stage0
+            ClearTextLines
+            copy [WRAM_RESET_STAGE], 1
+            ret
+        .stage0
+        cp 2
+        jr nz, .stage2
+            call UpdateScrollGraphics
+            copy [WRAM_RESET_STAGE], 3
+            ret
+        .stage2
+        
         ret
 
     UpdatePlayingGraphics:
@@ -160,13 +153,45 @@ section "level", rom0
         dw UpdateLostLogic
 
     UpdateResettingLogic:
+        ld a, [WRAM_RESET_STAGE]
+        cp 1
+        jr nz, .stage1
+            call InitBouncerLogic
+
+            ; init player struct
+            copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
+            copy [WRAM_PLAYER_STRUCT + X_POS], 40
+            copy [WRAM_PLAYER_STRUCT + Y_POS], 120
+            copy [WRAM_PLAYER_STRUCT + SPEED], 40
+
+
+            ;; init random seed
+            copy [WRAM_RANDOM], 1
+
+            copy [WRAM_SCROLL_X], 0
+            copy [WRAM_TOP_SCROLL_COUNTER], 0
+
+            call InitScreenFade
+
+            copy [WRAM_RESET_STAGE], 2
+
+            ret
+        .stage1
+        cp 3
+        jr nz, .stage3
+            copy [WRAM_LEVEL_STATE], STATE_PLAYING
+            ret
+        .stage3
+
         ret
     
     UpdatePlayingLogic:
+        call UpdatePlayerLogic
         call Scroll
         ret 
 
     UpdateLosingLogic:
+        call UpdatePlayerLogic
         call Scroll
         
         call UpdateScreenFade
@@ -182,6 +207,11 @@ section "level", rom0
         ret
 
     UpdateLostLogic:
+        UpdatePadInput WRAM_PAD_INPUT
+        TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
+        jr nz, .startIsPressed
+            call ResetLevel
+        .startIsPressed
         ret
 
     Scroll:
