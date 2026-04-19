@@ -23,7 +23,6 @@ def WRAM_TITLESCREEN_STATE  rb 1
 
 rsset MODE_RAM
 ; level mode
-def WRAM_RESET_STAGE rb 1
 def WRAM_LEVEL_STATE    rb 1
 def WRAM_PLAYER_STRUCT rb sizeof_PLAYER_STRUCT
 def WRAM_SCROLL_X   rb 1

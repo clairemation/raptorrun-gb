@@ -7,10 +7,12 @@ include "random.inc"
 include "game.inc"
 
 rsreset
-def STATE_RESETTING rb 1
+def STATE_RESETTING_STAGE_0 rb 1
+def STATE_RESETTING_STAGE_1 rb 1
+def STATE_RESETTING_STAGE_2 rb 1
+def STATE_RESETTING_STAGE_3 rb 1
 def STATE_PLAYING   rb 1
 def STATE_LOSING  rb 1
-def STATE_WRITING_LOSE_MESSAGE  rb 1
 def STATE_LOST  rb 1
 
 def TEXT_LINE_0 equ (32 * 6)
@@ -67,8 +69,7 @@ section "level", rom0
     
 
     ResetLevel:
-        copy [WRAM_LEVEL_STATE], STATE_RESETTING
-        copy [WRAM_RESET_STAGE], 0
+        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_0
 
         ret
 
@@ -93,29 +94,31 @@ section "level", rom0
         ret
 
     UpdateGraphicsFuncTable:
-        dw UpdateResettingGraphics
+        dw UpdateResettingStage0Graphics
+        dw UpdateResettingStage1Graphics
+        dw UpdateResettingStage2Graphics
+        dw UpdateResettingStage3Graphics
         dw UpdatePlayingGraphics
         dw UpdateLosingGraphics
-        dw UpdateWritingLoseMessageGraphics
         dw UpdateLostGraphics
 
 
-    UpdateResettingGraphics:
-        ld a, [WRAM_RESET_STAGE]
-        cp 0
-        jr nz, .stage0
-            ClearTextLines
-            copy [WRAM_RESET_STAGE], 1
-            ret
-        .stage0
-        cp 2
-        jr nz, .stage2
-            call UpdateScrollGraphics
-            copy [WRAM_RESET_STAGE], 3
-            ret
-        .stage2
-        
+    UpdateResettingStage0Graphics:
+        ClearTextLines
+        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_1
         ret
+
+    UpdateResettingStage1Graphics:
+        ret
+        
+    UpdateResettingStage2Graphics:
+        call UpdateScrollGraphics
+        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_3
+        ret
+    
+    UpdateResettingStage3Graphics:
+        ret
+
 
     UpdatePlayingGraphics:
         call UpdateScrollGraphics
@@ -133,8 +136,6 @@ section "level", rom0
         ld [rOBP0], a
         ret 
 
-    UpdateWritingLoseMessageGraphics:
-        ret
 
     UpdateLostGraphics:
         ret
@@ -146,43 +147,43 @@ section "level", rom0
         ret
 
     UpdateLogicFuncTable:
-        dw UpdateResettingLogic
+        dw UpdateResettingStage0Logic
+        dw UpdateResettingStage1Logic
+        dw UpdateResettingStage2Logic
+        dw UpdateResettingStage3Logic
         dw UpdatePlayingLogic
         dw UpdateLosingLogic
-        dw UpdateWritingLoseMessageLogic
         dw UpdateLostLogic
 
-    UpdateResettingLogic:
-        ld a, [WRAM_RESET_STAGE]
-        cp 1
-        jr nz, .stage1
-            call InitBouncerLogic
+    UpdateResettingStage0Logic:
+        ret
 
-            ; init player struct
-            copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
-            copy [WRAM_PLAYER_STRUCT + X_POS], 40
-            copy [WRAM_PLAYER_STRUCT + Y_POS], 120
-            copy [WRAM_PLAYER_STRUCT + SPEED], 40
+    UpdateResettingStage1Logic:
+        call InitBouncerLogic
+
+        ; init player struct
+        copy [WRAM_PLAYER_STRUCT + STATE], STATE_RISING
+        copy [WRAM_PLAYER_STRUCT + X_POS], 40
+        copy [WRAM_PLAYER_STRUCT + Y_POS], 120
+        copy [WRAM_PLAYER_STRUCT + SPEED], 40
 
 
-            ;; init random seed
-            copy [WRAM_RANDOM], 1
+        ;; init random seed
+        copy [WRAM_RANDOM], 1
 
-            copy [WRAM_SCROLL_X], 0
-            copy [WRAM_TOP_SCROLL_COUNTER], 0
+        copy [WRAM_SCROLL_X], 0
+        copy [WRAM_TOP_SCROLL_COUNTER], 0
 
-            call InitScreenFade
+        call InitScreenFade
 
-            copy [WRAM_RESET_STAGE], 2
+        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_2
+        ret
 
-            ret
-        .stage1
-        cp 3
-        jr nz, .stage3
-            copy [WRAM_LEVEL_STATE], STATE_PLAYING
-            ret
-        .stage3
+    UpdateResettingStage2Logic:
+        ret
 
+    UpdateResettingStage3Logic:
+        copy [WRAM_LEVEL_STATE], STATE_PLAYING
         ret
     
     UpdatePlayingLogic:
