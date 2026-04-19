@@ -14,6 +14,7 @@ def STATE_RESETTING_STAGE_3 rb 1
 def STATE_PLAYING   rb 1
 def STATE_LOSING  rb 1
 def STATE_LOST  rb 1
+def STATE_WAITING   rb 1
 
 def TEXT_LINE_0 equ (32 * 6)
 
@@ -101,6 +102,7 @@ section "level", rom0
         dw UpdatePlayingGraphics
         dw UpdateLosingGraphics
         dw UpdateLostGraphics
+        dw UpdateWaitingGraphics
 
 
     UpdateResettingStage0Graphics:
@@ -136,8 +138,12 @@ section "level", rom0
         ld [rOBP0], a
         ret 
 
-
     UpdateLostGraphics:
+        ; call WriteLostMessage
+        copy [WRAM_LEVEL_STATE], STATE_WAITING
+        ret
+
+    UpdateWaitingGraphics:
         ret
 
     UpdateScrollGraphics:
@@ -154,6 +160,7 @@ section "level", rom0
         dw UpdatePlayingLogic
         dw UpdateLosingLogic
         dw UpdateLostLogic
+        dw UpdateWaitingLogic
 
     UpdateResettingStage0Logic:
         ret
@@ -204,10 +211,10 @@ section "level", rom0
         copy [WRAM_LEVEL_STATE], STATE_LOST
         ret 
 
-    UpdateWritingLoseMessageLogic:
+    UpdateLostLogic:
         ret
 
-    UpdateLostLogic:
+    UpdateWaitingLogic:
         UpdatePadInput WRAM_PAD_INPUT
         TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
         jr nz, .startIsPressed
