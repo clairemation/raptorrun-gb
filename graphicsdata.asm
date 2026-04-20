@@ -77,8 +77,8 @@ section "level-graphics", rom0
 
         ;init scroll
         xor a
-        ld [rSCX], a
-        ld [rSCY], a
+        ldh [rSCX], a
+        ldh [rSCY], a
 
         ; InitPallettes
 
