@@ -10,13 +10,13 @@ rsreset
 def STATE_RESETTING_STAGE_0 rb 1
 def STATE_RESETTING_STAGE_1 rb 1
 def STATE_RESETTING_STAGE_2 rb 1
-def STATE_RESETTING_STAGE_3 rb 1
 def STATE_FADEIN    rb 1
 def STATE_PLAYING   rb 1
 def STATE_LOSING  rb 1
 def STATE_LOST_STAGE_0  rb 1
 def STATE_LOST_STAGE_1  rb 1
 def STATE_WAITING   rb 1
+def STATE_FADEOUT   rb 1
 
 def TEXT_LINE_0 equ (32 * 6)
 
@@ -53,6 +53,12 @@ macro DisableLCDInterrupt
     copy [rLYC], 255
     xor a
     ld [rSTAT], a
+endm
+
+macro UpdatePaletteGraphics
+    ld a, [WRAM_CURRENT_PALETTE]
+    ld [rBGP], a
+    ld [rOBP0], a
 endm
 
 section "level", rom0
@@ -106,13 +112,13 @@ section "level", rom0
         dw UpdateResettingStage0Graphics
         dw UpdateResettingStage1Graphics
         dw UpdateResettingStage2Graphics
-        dw UpdateResettingStage3Graphics
         dw UpdateFadeInGraphics
         dw UpdatePlayingGraphics
         dw UpdateLosingGraphics
         dw UpdateLostStage0Graphics
         dw UpdateLostStage1Graphics
         dw UpdateWaitingGraphics
+        dw UpdateFadeOutGraphics
 
 
     UpdateResettingStage0Graphics:
@@ -121,29 +127,24 @@ section "level", rom0
         ret
 
     UpdateResettingStage1Graphics:
+        call UpdateScrollGraphics
+        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_2
         ret
         
     UpdateResettingStage2Graphics:
-        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_3
-        ret
-    
-    UpdateResettingStage3Graphics:
+        copy [WRAM_LEVEL_STATE], STATE_FADEIN
         ret
 
     UpdateFadeInGraphics:
         call UpdatePlayerGraphics
-        ld a, [WRAM_CURRENT_PALETTE]
-        ld [rBGP], a
-        ld [rOBP0], a
+        UpdatePaletteGraphics
         ret
 
     UpdatePlayingGraphics:
         call UpdatePlayerGraphics
         call UpdateScrollGraphics
-        
         ret
 
-    ;todo: don't need this stage anymore?
     UpdateLosingGraphics:
         call UpdateScrollGraphics
         ret 
@@ -164,6 +165,11 @@ section "level", rom0
         call UpdateScrollGraphics
         ret
 
+    UpdateFadeOutGraphics:
+        call UpdateScrollGraphics
+        UpdatePaletteGraphics
+        ret
+
     UpdateScrollGraphics:
         copy [rSCX], [WRAM_SCROLL_X_TOP]
 
@@ -177,13 +183,13 @@ section "level", rom0
         dw UpdateResettingStage0Logic
         dw UpdateResettingStage1Logic
         dw UpdateResettingStage2Logic
-        dw UpdateResettingStage3Logic
         dw UpdateFadeInLogic
         dw UpdatePlayingLogic
         dw UpdateLosingLogic
         dw UpdateLostStage0Logic
         dw UpdateLostStage1Logic
         dw UpdateWaitingLogic
+        dw UpdateFadeOutLogic
 
     UpdateResettingStage0Logic:
         ret
@@ -208,13 +214,9 @@ section "level", rom0
         copy [WRAM_SCROLL_X], 0
         copy [WRAM_TOP_SCROLL_COUNTER], 0
 
-        copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_2
         ret
 
     UpdateResettingStage2Logic:
-        ret
-
-    UpdateResettingStage3Logic:
         copy [WRAM_DESTINATION_FADE], 3 ;normal
         copy [WRAM_LEVEL_STATE], STATE_FADEIN
         ret
@@ -235,6 +237,15 @@ section "level", rom0
 
     ;todo: stage no longer needed
     UpdateLosingLogic:
+        ;keep scrolling to nearest half tile (to center text)
+        ld a, [WRAM_SCROLL_X]
+        and a, %00000111
+        cp a, 4
+        jr z, .positionNotReached
+            call Scroll
+            ret
+        .positionNotReached
+
         copy [WRAM_LEVEL_STATE], STATE_LOST_STAGE_0
         ret 
 
@@ -248,8 +259,18 @@ section "level", rom0
         UpdatePadInput WRAM_PAD_INPUT
         TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
         jr nz, .startIsPressed
-            call ResetLevel
+            copy [WRAM_DESTINATION_FADE], 0
+            copy [WRAM_LEVEL_STATE], STATE_FADEOUT
         .startIsPressed
+        ret
+
+    UpdateFadeOutLogic:
+        call UpdateScreenFade
+
+        cp a, 1
+        ret z ;continue loop if fade is active
+
+        call ResetLevel
         ret
 
     Scroll:
