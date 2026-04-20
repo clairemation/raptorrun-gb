@@ -301,7 +301,6 @@ section "level", rom0
         srl a
 
         add a, 6 ; 5 tiles from left (eyeballed)
-        and a, %00011111 ; mask column to wraparound values of 0-31
         ld b, a
 
         ld de, GameOverText
@@ -320,7 +319,6 @@ section "level", rom0
         srl a
         
         add a, 5 ; 4 tiles from left (eyeballed)
-        and a, %00011111 ; mask column to wraparound values of 0-31
         ld b, a
 
         ld de, PressStartText
