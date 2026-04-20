@@ -9,14 +9,11 @@ def TITLE_TILESET_SIZE    equ (3712)
 def STATE_WAITING   equ(0)
 def STATE_STARTING  equ(1)
 
-def PALETTE_0  equ(%11100100)
-; def PALETTE_1  equ(%11111001)
-; def PALETTE_2  equ(%11111110)
-; def PALETTE_3  equ(%11111111)
+def PALETTE_NORMAL  equ(%11100100)
 
 macro InitPallettes
     ; init the palettes
-    ld a, PALETTE_0
+    ld a, PALETTE_NORMAL
     ld [rBGP], a
     ld [rOBP0], a
     ld a, %00011011
@@ -44,7 +41,10 @@ section "titlescreen", rom0
 InitTitleScreen:
     copy [WRAM_GAME_STATE], 0
     copy [WRAM_TITLESCREEN_STATE], STATE_WAITING
+
+    InitPallettes
     call InitScreenFade
+    copy [WRAM_DESTINATION_FADE], 6
 
     DisableLCD
 
@@ -90,8 +90,6 @@ InitTitleScreen:
     ; set destination
     ld hl, $9800
     call LoadBytesToHLFromBCToDE
-    
-    InitPallettes
 
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJOFF | LCDCF_BGON
     ld [rLCDC], a
@@ -133,12 +131,10 @@ UpdateTitleScreen:
 
     ;starting state - fade out
 
-    call UpdateScreenFade
-
+    call UpdateScreenFade ;sets a to 1 or 0 if fade is active or finished, respectively
     ; continue loop if fade is active
-    ld a, [WRAM_FADE_IS_ACTIVE]
-    cp 0
-    ret nz
+    cp a, 1
+    ret z
         
     ;else call init level (ending the loop)
     call InitLevel
