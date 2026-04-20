@@ -122,24 +122,6 @@ UpdateOnGround:
     .jumpIsPressed
     ret
 
-
-UpdateFlapping:
-    ld a, [PLAYER + FLAP_COOLDOWN]
-    ld b, a
-    and a
-    jr nz, .cooldownOver
-        copy [PLAYER + STATE], STATE_FALLING
-        call UpdateFalling
-        ret
-    .cooldownOver
-    ld a, b
-    dec a
-    ld [PLAYER + FLAP_COOLDOWN], a
-
-    call Fall
-    ret
-
-
 UpdateRising:
     ld a, [PLAYER + SPEED]
     ld c, a ;unscaled speed
@@ -163,6 +145,22 @@ UpdateRising:
         ld [PLAYER + SPEED], a
     .overflowDone
 
+    ret
+
+UpdateFlapping:
+    ld a, [PLAYER + FLAP_COOLDOWN]
+    ld b, a
+    and a
+    jr nz, .cooldownOver
+        copy [PLAYER + STATE], STATE_FALLING
+        call UpdateFalling
+        ret
+    .cooldownOver
+    ld a, b
+    dec a
+    ld [PLAYER + FLAP_COOLDOWN], a
+
+    call Fall
     ret
 
 
