@@ -31,13 +31,13 @@ section "fadescreen", rom0
 
         ;countdown is over
 
-        ld [WRAM_DESTINATION_FADE], a
-        ld b, a
         ld a, [WRAM_CURRENT_PALETTE_INDEX]
+        ld b, a
+        ld a, [WRAM_DESTINATION_FADE]
         cp a, b
-        jr c, .destinationIsHigher
+        jr c, .destinationIsLower
         jr z, .destinationIsSame
-        jr .destinationIsLower
+        ; jr .destinationIsHigher
         .destinationIsHigher
             ld a, [WRAM_CURRENT_PALETTE_INDEX]
             inc a

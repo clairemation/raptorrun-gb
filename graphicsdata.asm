@@ -80,7 +80,7 @@ section "level-graphics", rom0
         ld [rSCX], a
         ld [rSCY], a
 
-        InitPallettes
+        ; InitPallettes
 
         ret
 

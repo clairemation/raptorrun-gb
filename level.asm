@@ -11,6 +11,7 @@ def STATE_RESETTING_STAGE_0 rb 1
 def STATE_RESETTING_STAGE_1 rb 1
 def STATE_RESETTING_STAGE_2 rb 1
 def STATE_RESETTING_STAGE_3 rb 1
+def STATE_FADEIN    rb 1
 def STATE_PLAYING   rb 1
 def STATE_LOSING  rb 1
 def STATE_LOST_STAGE_0  rb 1
@@ -106,6 +107,7 @@ section "level", rom0
         dw UpdateResettingStage1Graphics
         dw UpdateResettingStage2Graphics
         dw UpdateResettingStage3Graphics
+        dw UpdateFadeInGraphics
         dw UpdatePlayingGraphics
         dw UpdateLosingGraphics
         dw UpdateLostStage0Graphics
@@ -126,6 +128,10 @@ section "level", rom0
         ret
     
     UpdateResettingStage3Graphics:
+        ret
+
+    UpdateFadeInGraphics:
+        call UpdatePlayerGraphics
         ld a, [WRAM_CURRENT_PALETTE]
         ld [rBGP], a
         ld [rOBP0], a
@@ -172,6 +178,7 @@ section "level", rom0
         dw UpdateResettingStage1Logic
         dw UpdateResettingStage2Logic
         dw UpdateResettingStage3Logic
+        dw UpdateFadeInLogic
         dw UpdatePlayingLogic
         dw UpdateLosingLogic
         dw UpdateLostStage0Logic
@@ -201,8 +208,6 @@ section "level", rom0
         copy [WRAM_SCROLL_X], 0
         copy [WRAM_TOP_SCROLL_COUNTER], 0
 
-        call InitScreenFade
-
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_2
         ret
 
@@ -210,8 +215,18 @@ section "level", rom0
         ret
 
     UpdateResettingStage3Logic:
-        copy [WRAM_LEVEL_STATE], STATE_PLAYING
+        copy [WRAM_DESTINATION_FADE], 3 ;normal
+        copy [WRAM_LEVEL_STATE], STATE_FADEIN
         ret
+
+    UpdateFadeInLogic:
+        call UpdateScreenFade
+
+        cp a, 1
+        ret z ;continue if fade unfinished
+
+        copy [WRAM_LEVEL_STATE], STATE_PLAYING
+
     
     UpdatePlayingLogic:
         call UpdatePlayerLogic
