@@ -144,13 +144,13 @@ section "level", rom0
 
     UpdateLostStage0Graphics:
         call UpdateScrollGraphics
-        ; call WriteLostMessageLine0
+        call WriteLostMessageLine0
         copy [WRAM_LEVEL_STATE], STATE_LOST_STAGE_1
         ret
 
     UpdateLostStage1Graphics:
         call UpdateScrollGraphics
-        ; call WriteLostMessageLine1
+        call WriteLostMessageLine1
         copy [WRAM_LEVEL_STATE], STATE_WAITING
         ret
 
@@ -259,7 +259,7 @@ section "level", rom0
 
     WriteLostMessageLine0:
         ; add current scroll x tile
-        ld a, [rSCX]
+        ld a, [WRAM_SCROLL_X]
         srl a
         srl a
         srl a
@@ -278,7 +278,7 @@ section "level", rom0
 
     WriteLostMessageLine1:
 
-        ld a, [rSCX]
+        ld a, [WRAM_SCROLL_X]
         srl a
         srl a
         srl a
