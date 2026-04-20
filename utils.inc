@@ -4,13 +4,13 @@ def UTILS_RGBINC equ 1
 macro DisableLCD
     ;wait for VBlank
     .wait_vblank\@
-        ld a, [rLY]
+        ldh a, [rLY]
         cp a, SCRN_Y
         jr nz, .wait_vblank\@
 
     ;turn LCD off
         xor a
-        ld [rLCDC], a
+        ldh [rLCDC], a
 endm
 
 ; copy /2 into /1 via a

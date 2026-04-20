@@ -9,40 +9,40 @@ def STATE_PLAYING   equ(0)
 def STATE_LOST  equ(1)
 
 macro PlayFlap
-    copy [rNR41], $33
-    copy [rNR42], $f0
-    copy [rNR43], $80
-    copy [rNR44], $c0
+    copyHighToMemory [rNR41], $33
+    copyHighToMemory [rNR42], $f0
+    copyHighToMemory [rNR43], $80
+    copyHighToMemory [rNR44], $c0
 endm
 
 macro PlayBounce
-    copy [rNR10], $14
-    copy [rNR11], $4c
-    copy [rNR12], $f1
-    copy [rNR13], $9d
-    copy [rNR14], $c0
+    copyHighToMemory [rNR10], $14
+    copyHighToMemory [rNR11], $4c
+    copyHighToMemory [rNR12], $f1
+    copyHighToMemory [rNR13], $9d
+    copyHighToMemory [rNR14], $c0
 endm
 
 macro PlayCrunch
-    copy [rNR41], $14
-    copy [rNR42], $f1
-    copy [rNR43], $52
-    copy [rNR44], $c0
+    copyHighToMemory [rNR41], $14
+    copyHighToMemory [rNR42], $f1
+    copyHighToMemory [rNR43], $52
+    copyHighToMemory [rNR44], $c0
 endm
 
 macro PlayFernCrunch
-    copy [rNR41], $00
-    copy [rNR42], $f1
-    copy [rNR43], $40
-    copy [rNR44], $c0
+    copyHighToMemory [rNR41], $00
+    copyHighToMemory [rNR42], $f1
+    copyHighToMemory [rNR43], $40
+    copyHighToMemory [rNR44], $c0
 endm
 
 macro PlayLose
-    copy [rNR10], $1c
-    copy [rNR11], $c0
-    copy [rNR12], $f7
-    copy [rNR13], $3c
-    copy [rNR14], $c5
+    copyHighToMemory [rNR10], $1c
+    copyHighToMemory [rNR11], $c0
+    copyHighToMemory [rNR12], $f7
+    copyHighToMemory [rNR13], $3c
+    copyHighToMemory [rNR14], $c5
 endm
 
 section "player-logic", rom0

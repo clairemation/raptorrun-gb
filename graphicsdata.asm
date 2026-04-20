@@ -38,10 +38,10 @@ endm
 macro InitPallettes
     ; init the palettes
     ld a, %11100100
-    ld [rBGP], a
-    ld [rOBP0], a
+    ldh [rBGP], a
+    ldh [rOBP0], a
     ld a, %00011011
-    ld [rOBP1], a
+    ldh [rOBP1], a
 endm
 
 macro SetGraphicsParameters

@@ -14,10 +14,10 @@ def PALETTE_NORMAL  equ(%11100100)
 macro InitPallettes
     ; init the palettes
     ld a, PALETTE_NORMAL
-    ld [rBGP], a
-    ld [rOBP0], a
+    ldh [rBGP], a
+    ldh [rOBP0], a
     ld a, %00011011
-    ld [rOBP1], a
+    ldh [rOBP1], a
 endm
 
 macro WaitForStartPress
@@ -30,11 +30,11 @@ macro WaitForStartPress
 endm
 
 macro PlayStartSound
-    copy [rNR10], $15
-    copy [rNR11], $80
-    copy [rNR12], $f8
-    copy [rNR13], $0b
-    copy [rNR14], $c5
+    copyHighToMemory [rNR10], $15
+    copyHighToMemory [rNR11], $80
+    copyHighToMemory [rNR12], $f8
+    copyHighToMemory [rNR13], $0b
+    copyHighToMemory [rNR14], $c5
 endm
 
 section "titlescreen", rom0
@@ -92,11 +92,11 @@ InitTitleScreen:
     call LoadBytesToHLFromBCToDE
 
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJOFF | LCDCF_BGON
-    ld [rLCDC], a
+    ldh [rLCDC], a
 
     ; enable the vblank interrupt
     ld a, IEF_VBLANK
-    ld [rIE], a
+    ldh [rIE], a
 
     copy [rNR52], AUDENA_ON
     copy [rNR50], $77
@@ -118,7 +118,7 @@ UpdateTitleScreen:
     
     ; ;graphics
     ld a, [WRAM_CURRENT_PALETTE]
-    ld [rBGP], a
+    ldh [rBGP], a
     
     ; ;logic
 

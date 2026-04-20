@@ -339,15 +339,18 @@ section "level", rom0
         .loop
             ld a, [de]
             cp $3B ; semicolon - sentinal character
-            jr z, .endloop
+            ret z ; exit if end of string
             add a, $3f ;offset from ascii value to tile index
-            copyHighToMemory [HRAM_SCRATCH_BYTES], a
+            copyHighToMemory [HRAM_SCRATCH_BYTES], a ;tile index
 
             ;backup de
-            copy [HRAM_SCRATCH_BYTES + 1], d
-            copy [HRAM_SCRATCH_BYTES + 2], e 
+            push de
 
             ;calculate hl
+
+            ld a, b ;x position aka column
+            and a, %00011111 ;keep x position masked to wraparound values of 0-31
+            ld b, a
 
             ; add tile base to x position
             ld hl, _SCRN0
@@ -363,22 +366,17 @@ section "level", rom0
             add hl, de
 
             ; load tile
-            ldh a, [HRAM_SCRATCH_BYTES]
-            ld [hl], a
+            copyHighFromMemory [hl], [HRAM_SCRATCH_BYTES]
 
             ;restore de
-            copyHighFromMemory d, [HRAM_SCRATCH_BYTES + 1]
-            copyHighFromMemory e, [HRAM_SCRATCH_BYTES + 2]
+            pop de
 
             inc de
 
-            ld a, b
-            inc a
-            and a, %00011111 ;keep column masked to wraparound values of 0-31
-            ld b, a
+            inc b
 
             jr .loop
-        .endloop
+
         ret
 
     LoseLevel:
@@ -387,14 +385,14 @@ section "level", rom0
 
     LCDInterrupt:
         ;check if on target line
-        ld a, [rSTAT]
+        ldh a, [rSTAT]
         bit 2, a
         jr z, .return
 
         ld b, a
 
         ;enable next hblank
-        copy [rSTAT], STATF_MODE00
+        copyHighToMemory [rSTAT], STATF_MODE00
 
         ;check for current hblank
         ld a, b
