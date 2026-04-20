@@ -266,12 +266,12 @@ UpdateDying:
     add a, b
     ld [PLAYER + Y_POS], a    
 
-    cp 130
+    cp 135
     jr z, .yGTOrEqualTo130
     jr nc, .yGTOrEqualTo130
     jr .yLessThan130
     .yGTOrEqualTo130
-        copy [PLAYER + Y_POS], 130
+        copy [PLAYER + Y_POS], 135
         PlayLose
         copy [PLAYER + STATE], STATE_DEAD
         call LoseLevel
