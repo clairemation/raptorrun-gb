@@ -241,20 +241,22 @@ Fall:
         jr .isEmpty
         .isTrike
             PlayBounce
-            jr .isBouncer
+            copy [PLAYER + SPEED], 40
+            copy [PLAYER + STATE], STATE_RISING
+            ret
         .isSkeleton
             PlayCrunch
             call SquashBouncerAtHLInIndexB
             ;set up squashed skeleton animation
             copy [WRAM_SQUASHED_SKELETON_INDEX], b
             copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], 8
-            jr .isBouncer
+            copy [PLAYER + SPEED], 30
+            copy [PLAYER + STATE], STATE_RISING
+            ret
         .isFern
             PlayFernCrunch
             call SquashBouncerAtHLInIndexB
-            jr .isBouncer
-        .isBouncer
-            copy [PLAYER + SPEED], 40
+            copy [PLAYER + SPEED], 35
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isEmpty
