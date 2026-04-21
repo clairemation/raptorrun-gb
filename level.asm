@@ -79,8 +79,6 @@ section "level", rom0
         ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON
         ld [rLCDC], a
 
-        call InitPlayer
-
         call ResetLevel
 
         ei
@@ -128,11 +126,11 @@ section "level", rom0
 
     UpdateResettingStage1Graphics:
         call UpdateScrollGraphics
+        call InitPlayerGraphics
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_2
         ret
         
     UpdateResettingStage2Graphics:
-        copy [WRAM_LEVEL_STATE], STATE_FADEIN
         ret
 
     UpdateFadeInGraphics:

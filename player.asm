@@ -45,31 +45,46 @@ macro PlayLose
     copyHighToMemory [rNR14], $c5
 endm
 
+macro Die
+    ;set sprite priority flags to appear behind bg
+    ld hl, _OAMRAM + OAMA_FLAGS
+    set 7, [hl]
+    ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+    set 7, [hl]
+
+    copy [PLAYER + STATE], STATE_DYING
+endm
+
 section "player-logic", rom0
 
-InitPlayer:
-    ; copy [rNR52], AUDENA_ON
-    ; copy [rNR50], $77
-    ; copy [rNR51], $ff
+InitPlayerGraphics:
+    ; set sprite priority flags to appear in front of bg
+    ld hl, _OAMRAM + OAMA_FLAGS
+    res 7, [hl]
+    ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+    res 7, [hl]
+
+    ld b,b
+
     ret
 
 UpdatePlayerGraphics:
     ; if dying or dead state, draw bg over sprite
     ; todo: do i undo this anywhere?
-    ld a, [PLAYER + STATE]
-    cp STATE_DYING
-    jr c, .isDying ;state 4 or 5 (redo this if I add more states) 
-        ld hl, _OAMRAM + OAMA_FLAGS
-        set 7, [hl]
-        ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
-        set 7, [hl]
-        jr .dyingComparisonDone
-    .isDying
-        ld hl, _OAMRAM + OAMA_FLAGS
-        res 7, [hl]
-        ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
-        res 7, [hl]
-    .dyingComparisonDone
+    ; ld a, [PLAYER + STATE]
+    ; cp STATE_DYING
+    ; jr c, .isDying ;state 4 or 5 (redo this if I add more states) 
+    ;     ld hl, _OAMRAM + OAMA_FLAGS
+    ;     set 7, [hl]
+    ;     ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+    ;     set 7, [hl]
+    ;     jr .dyingComparisonDone
+    ; .isDying
+    ;     ld hl, _OAMRAM + OAMA_FLAGS
+    ;     res 7, [hl]
+    ;     ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+    ;     res 7, [hl]
+    ; .dyingComparisonDone
 
     ;update player sprite to match state
     ld a, [PLAYER + STATE]
@@ -245,7 +260,7 @@ Fall:
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isEmpty
-            copy [PLAYER + STATE], STATE_DYING
+            Die
             ret
     .yLessThan120
         ;increment unscaled speed
@@ -283,4 +298,4 @@ UpdateDying:
 UpdateDead:
     ret
 
-export InitPlayer, UpdatePlayerGraphics, UpdatePlayerLogic
+export InitPlayerGraphics, UpdatePlayerGraphics, UpdatePlayerLogic
