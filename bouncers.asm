@@ -95,33 +95,20 @@ endm
 
 ;TODO: replace
 macro KillSquashedSkeleton
-    ;get second-leftmost bouncer slot index, e.g. scrollx / 16
-    ld a, [WRAM_SCROLL_X]
-    srl a
-    srl a
-    srl a
-    srl a
-
+    ld a, [WRAM_SQUASHED_SKELETON_INDEX]
     ld b, a
 
     call AddIndexBToUpdateList
 
     ; add index to slot base to get slot address
     ld hl, WRAM_BOUNCER_SPOTS
-    ld e, a
+    ld e, b
     xor a
     ld d, a
     add hl, de
-    inc hl
 
-    ; if squashed skeleton, change to blank tile
-    ld a, [hl]
-    cp $10
-    jr nz, .isSquashedSkeleton\@
-        copy [hl], $00
-        jr .doneWithComparison\@
-    .isSquashedSkeleton\@
-    .doneWithComparison\@
+    ; change to blank tile
+    copy [hl], $00
 endm
 
 section "bouncers", rom0
@@ -133,6 +120,8 @@ section "bouncers", rom0
             copy [hli], 0
             dec b
             jr nz, .loop
+
+        copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], $ff
         
         ; add first 11 slots to update list to clear them
         ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
@@ -206,17 +195,29 @@ section "bouncers", rom0
         ret
 
     UpdateBouncers:
-        ; when on slot border, e.g. scroll is a multiple of 16
+        ; populate next bouncer slot when scroll is on slot border, e.g. scroll is a multiple of 16
+
         ld a, [WRAM_SCROLL_X]
         ld b, a
         and a, %00001111
         jr nz, .isOnSlotBorder
-
             PopulateNextBouncerSlot
-
-            ; KillSquashedSkeleton
-
         .isOnSlotBorder
+
+        ;kill squashed skeleton if countdown is over
+
+        ld a, [WRAM_SQUASHED_SKELETON_COUNTDOWN]
+        cp a, $ff ; $ff = no countdown active
+        ret z ;no countdown active
+        
+        dec a
+        ld [WRAM_SQUASHED_SKELETON_COUNTDOWN], a
+        ret nz ;countdown not finished
+
+        ;countdown finished
+        KillSquashedSkeleton
+
+        copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], $ff
         ret
 
     SquashBouncerAtHLInIndexB:

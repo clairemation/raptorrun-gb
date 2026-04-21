@@ -232,6 +232,9 @@ Fall:
         .isSkeleton
             PlayCrunch
             call SquashBouncerAtHLInIndexB
+            ;set up squashed skeleton animation
+            copy [WRAM_SQUASHED_SKELETON_INDEX], b
+            copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], 8
             jr .isBouncer
         .isFern
             PlayFernCrunch

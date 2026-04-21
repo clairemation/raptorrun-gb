@@ -1,6 +1,10 @@
 if !def(UTILS_RGBINC)
 def UTILS_RGBINC equ 1
 
+macro Breakpoint
+        ld b, b
+endm
+
 macro DisableLCD
     ;wait for VBlank
     .wait_vblank\@
