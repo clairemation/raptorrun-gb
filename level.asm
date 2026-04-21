@@ -43,8 +43,9 @@ macro CheckForOutOfVBlank
     ld [HRAM_SCRATCH_BYTES], a
 endm
 
+;\1 = line number
 macro EnableLineCompareInterrupt
-    copy [rLYC], 32
+    copy [rLYC], \1
     copy [rSTAT], STATF_LYC
 endm
 
@@ -169,11 +170,11 @@ section "level", rom0
         ret
 
     UpdateScrollGraphics:
-        copy [rSCX], [WRAM_SCROLL_X_TOP]
+        copy [rSCX], [WRAM_SCROLL_X_MIDGROUND]
 
         call UpdateBouncerGraphics
 
-        EnableLineCompareInterrupt
+        EnableLineCompareInterrupt 13
 
         ret
 
@@ -194,8 +195,10 @@ section "level", rom0
 
     UpdateResettingStage1Logic:
         xor a
-        ld [WRAM_SCROLL_X], a
-        ld [WRAM_SCROLL_X_TOP], a
+        ld [WRAM_SCROLL_X_FOREGROUND], a
+        ld [WRAM_SCROLL_X_MIDGROUND], a
+        ld [WRAM_SCROLL_X_BACKGROUND], a
+        ld [WRAM_TOP_SCROLL_COUNTER], a
 
         call InitBouncerLogic
 
@@ -205,12 +208,8 @@ section "level", rom0
         copy [WRAM_PLAYER_STRUCT + Y_POS], 120
         copy [WRAM_PLAYER_STRUCT + SPEED], 40
 
-
         ;; init random seed
         copy [WRAM_RANDOM], 1
-
-        copy [WRAM_SCROLL_X], 0
-        copy [WRAM_TOP_SCROLL_COUNTER], 0
 
         ret
 
@@ -236,7 +235,7 @@ section "level", rom0
     ;todo: stage no longer needed
     UpdateLosingLogic:
         ;keep scrolling to nearest half tile (to center text)
-        ld a, [WRAM_SCROLL_X]
+        ld a, [WRAM_SCROLL_X_FOREGROUND]
         and a, %00000111
         cp a, 4
         jr z, .positionNotReached
@@ -272,20 +271,27 @@ section "level", rom0
         ret
 
     Scroll:
-        ld hl, WRAM_SCROLL_X
+        ld hl, WRAM_SCROLL_X_FOREGROUND
         inc [hl]
 
         ld a, [WRAM_TOP_SCROLL_COUNTER]
         inc a
         ld [WRAM_TOP_SCROLL_COUNTER], a
 
-        and a, %00000011 ;every four frames
-
+        and a, %00000011 ;every 4 frames
         jr nz, .every4thFrame
-            ld a, [WRAM_SCROLL_X_TOP]
+            ld a, [WRAM_SCROLL_X_BACKGROUND]
             inc a
-            ld [WRAM_SCROLL_X_TOP], a
+            ld [WRAM_SCROLL_X_BACKGROUND], a
         .every4thFrame
+
+        ld a, [WRAM_TOP_SCROLL_COUNTER]
+        and a, %00000001 ;every other frame
+        jr nz, .everyOtherFrame
+            ld a, [WRAM_SCROLL_X_MIDGROUND]
+            inc a
+            ld [WRAM_SCROLL_X_MIDGROUND], a
+        .everyOtherFrame
 
         call UpdateBouncers
 
@@ -293,7 +299,7 @@ section "level", rom0
 
     WriteLostMessageLine0:
         ; add current scroll x tile
-        ld a, [WRAM_SCROLL_X]
+        ld a, [WRAM_SCROLL_X_FOREGROUND]
         srl a
         srl a
         srl a
@@ -311,7 +317,7 @@ section "level", rom0
 
     WriteLostMessageLine1:
 
-        ld a, [WRAM_SCROLL_X]
+        ld a, [WRAM_SCROLL_X_FOREGROUND]
         srl a
         srl a
         srl a
@@ -383,7 +389,7 @@ section "level", rom0
         ;check if on target line
         ldh a, [rSTAT]
         bit 2, a
-        jr z, .return
+        ret z
 
         ld b, a
 
@@ -393,14 +399,22 @@ section "level", rom0
         ;check for current hblank
         ld a, b
         and a, 3
-        jr nz, .return
+        ret nz
 
+        ldh a, [rLY]
+
+        cp 13
+        jr nz, .middleSection
+            copyHighToMemory [rSCX], [WRAM_SCROLL_X_BACKGROUND]
+            EnableLineCompareInterrupt 32
+            ret
+        .middleSection
+            
+        ;bottom Section i.e. rest of screen
         ;draw normal section scroll
-        copy [rSCX], [WRAM_SCROLL_X]
+        copyHighToMemory [rSCX], [WRAM_SCROLL_X_FOREGROUND]
 
         DisableLCDInterrupt
-
-        .return
         ret
 
 export InitLevel, ResetLevel, UpdateLevel, LoseLevel, LCDInterrupt

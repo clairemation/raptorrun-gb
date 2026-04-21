@@ -197,7 +197,7 @@ section "bouncers", rom0
     UpdateBouncers:
         ; populate next bouncer slot when scroll is on slot border, e.g. scroll is a multiple of 16
 
-        ld a, [WRAM_SCROLL_X]
+        ld a, [WRAM_SCROLL_X_FOREGROUND]
         ld b, a
         and a, %00001111
         jr nz, .isOnSlotBorder

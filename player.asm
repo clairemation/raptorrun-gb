@@ -64,8 +64,6 @@ InitPlayerGraphics:
     ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
     res 7, [hl]
 
-    ld b,b
-
     ret
 
 UpdatePlayerGraphics:
@@ -214,7 +212,7 @@ Fall:
         copy [PLAYER + Y_POS], 120
         
         ;get current tile
-        ld a, [WRAM_SCROLL_X] ;left edge of screen
+        ld a, [WRAM_SCROLL_X_FOREGROUND] ;left edge of screen
         add a, 40 ;player X offset
         ;divide by 16 to get slot #
         srl a
