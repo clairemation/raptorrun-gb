@@ -1,6 +1,7 @@
 include "hardware.inc"
 include "utils.inc"
 include "graphics-size.inc"
+include "player-consts.inc"
 
 
 ; load the graphics data from ROM to VRAM
@@ -45,7 +46,7 @@ macro InitPallettes
 endm
 
 macro SetGraphicsParameters
-    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
 endm
 
 macro EnableLCD
@@ -66,13 +67,21 @@ section "level-graphics", rom0
 
 
         ; init sprite 0
-        copy [SPRITE_0_ADDRESS + OAMA_TILEID], 0
-        copy [SPRITE_0_ADDRESS + OAMA_FLAGS], OAMF_PAL0
-        copy [SPRITE_0_ADDRESS + OAMA_X], 40
+        copy [TOP_LEFT_SPRITE_ADDRESS + OAMA_TILEID], 0
+        copy [TOP_LEFT_SPRITE_ADDRESS + OAMA_FLAGS], OAMF_PAL0
+        copy [TOP_LEFT_SPRITE_ADDRESS + OAMA_X], 40
+
+        copy [BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_TILEID], 1
+        copy [BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_FLAGS], OAMF_PAL0
+        copy [BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_X], 40
         
-        copy [SPRITE_0_RIGHTSIDE + OAMA_TILEID], 2
-        copy [SPRITE_0_RIGHTSIDE + OAMA_FLAGS], OAMF_PAL0
-        copy [SPRITE_0_RIGHTSIDE + OAMA_X], 48
+        copy [TOP_RIGHT_SPRITE_ADDRESS + OAMA_TILEID], 2
+        copy [TOP_RIGHT_SPRITE_ADDRESS + OAMA_FLAGS], OAMF_PAL0
+        copy [TOP_RIGHT_SPRITE_ADDRESS + OAMA_X], 48
+
+        copy [BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_TILEID], 3
+        copy [BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_FLAGS], OAMF_PAL0
+        copy [BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_X], 48
 
 
         ;init scroll

@@ -1,5 +1,13 @@
+include "hardware.inc"
+
 if !def(PLAYER_CONSTS_INC)
 def PLAYER_CONSTS_INC equ 1
+
+;sprites
+def TOP_LEFT_SPRITE_ADDRESS equ (_OAMRAM)
+def BOTTOM_LEFT_SPRITE_ADDRESS  equ (_OAMRAM + sizeof_OAM_ATTRS)
+def TOP_RIGHT_SPRITE_ADDRESS equ (_OAMRAM + sizeof_OAM_ATTRS * 2)
+def BOTTOM_RIGHT_SPRITE_ADDRESS equ (_OAMRAM + sizeof_OAM_ATTRS * 3)
 
 rsreset
 def STATE_ONGROUND  rb 1 ; 0

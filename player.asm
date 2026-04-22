@@ -48,9 +48,9 @@ endm
 
 macro Die
     ;set sprite priority flags to appear behind bg
-    ld hl, _OAMRAM + OAMA_FLAGS
+    ld hl, BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_FLAGS
     set 7, [hl]
-    ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+    ld hl, BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_FLAGS
     set 7, [hl]
 
     copy [PLAYER + STATE], STATE_DYING
@@ -60,48 +60,36 @@ section "player-logic", rom0
 
 InitPlayerGraphics:
     ; set sprite priority flags to appear in front of bg
-    ld hl, _OAMRAM + OAMA_FLAGS
+    ld hl, BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_FLAGS
     res 7, [hl]
-    ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
+    ld hl, BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_FLAGS
     res 7, [hl]
 
     ret
 
 UpdatePlayerGraphics:
-    ; if dying or dead state, draw bg over sprite
-    ; todo: do i undo this anywhere?
-    ; ld a, [PLAYER + STATE]
-    ; cp STATE_DYING
-    ; jr c, .isDying ;state 4 or 5 (redo this if I add more states) 
-    ;     ld hl, _OAMRAM + OAMA_FLAGS
-    ;     set 7, [hl]
-    ;     ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
-    ;     set 7, [hl]
-    ;     jr .dyingComparisonDone
-    ; .isDying
-    ;     ld hl, _OAMRAM + OAMA_FLAGS
-    ;     res 7, [hl]
-    ;     ld hl, _OAMRAM + sizeof_OAM_ATTRS + OAMA_FLAGS
-    ;     res 7, [hl]
-    ; .dyingComparisonDone
 
     ;update player sprite to match state
     ld a, [PLAYER + STATE]
     ld hl, StateSpriteTable
     AddAtoHL
-    ld b, [hl]
-    copy [_OAMRAM + OAMA_TILEID], b
     
-    ; update right-side sprite
-    ; (next OAM sprite = tile + 2)
-    ld a, b
-    add a, 2
-    ld b, a
-    copy [_OAMRAM + sizeof_OAM_ATTRS + OAMA_TILEID], b
+    ld b, [hl]
+    copy [TOP_LEFT_SPRITE_ADDRESS + OAMA_TILEID], b
+    inc b
+    copy [BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_TILEID], b
+    inc b
+    copy [TOP_RIGHT_SPRITE_ADDRESS + OAMA_TILEID], b
+    inc b
+    copy [BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_TILEID], b
 
     ; update sprite position
-    copy [_OAMRAM + OAMA_Y], [PLAYER + Y_POS]
-    copy [_OAMRAM + sizeof_OAM_ATTRS + OAMA_Y], [PLAYER + Y_POS]
+    ld a, [PLAYER + Y_POS]
+    ld [TOP_LEFT_SPRITE_ADDRESS + OAMA_Y], a
+    ld [TOP_RIGHT_SPRITE_ADDRESS + OAMA_Y], a
+    add a, 8
+    ld [BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_Y], a
+    ld [BOTTOM_RIGHT_SPRITE_ADDRESS + OAMA_Y], a
     
     ret
 
