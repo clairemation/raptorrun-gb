@@ -2,6 +2,7 @@ include "hardware.inc"
 include "utils.inc"
 include "player-consts.inc"
 include "wram.inc"
+include "random.inc"
 
 def PLAYER equ(WRAM_PLAYER_STRUCT)
 
@@ -185,7 +186,8 @@ UpdateFalling:
         copy [PLAYER + SPEED], 0
         copy [PLAYER + FLAP_COOLDOWN], 6
         copy [PLAYER + STATE], STATE_FLAPPING
-        PlayFlap    
+        PlayFlap
+        GetNextRandomValue WRAM_RANDOM ;mix up random seed
     .jumpIsPressed
     call Fall
     ret
@@ -204,12 +206,12 @@ Fall:
     ld [PLAYER + Y_POS], a    
 
     .checkForGround
-    cp 120
-    jr z, .yGTOrEqualTo120
-    jr nc, .yGTOrEqualTo120
-    jp .yLessThan120
-    .yGTOrEqualTo120
-        copy [PLAYER + Y_POS], 120
+    cp 125
+    jr z, .yGTOrEqualTo125
+    jr nc, .yGTOrEqualTo125
+    jp .yLessThan125
+    .yGTOrEqualTo125
+        copy [PLAYER + Y_POS], 125
         
         ;get current tile
         ld a, [WRAM_SCROLL_X_FOREGROUND] ;left edge of screen
@@ -262,7 +264,7 @@ Fall:
         .isEmpty
             Die
             ret
-    .yLessThan120
+    .yLessThan125
         ;increment unscaled speed
         ld a, c
         inc a

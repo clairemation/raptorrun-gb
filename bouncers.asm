@@ -36,11 +36,11 @@ macro PopulateNextBouncerSlot
 
     ;roll for next bouncer tile
     GetNextRandomValue WRAM_RANDOM
-    cp 50
+    cp 25
         jr c, .isTrike\@
-    cp 100
+    cp 50
         jr c, .isSkeleton\@
-    cp 150
+    cp 75
         jr c, .isFern\@
     jr .isEmpty\@
     
