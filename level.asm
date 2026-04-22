@@ -264,6 +264,7 @@ section "level", rom0
     UpdatePlayingLogic:
         call UpdatePlayerLogic
         call Scroll
+        call IncrementScore
         ret 
 
     ;todo: stage no longer needed
@@ -336,16 +337,33 @@ section "level", rom0
         inc a
         cp $0a
         jr nz, .carryOne
-            copy [WRAM_SCORE_ONES], 9
+            copy [WRAM_SCORE_ONES], 0
             ld a, [WRAM_SCORE_TENS]
             inc a
             cp $0a
             jr nz, .carryTen
-                
+                copy [WRAM_SCORE_TENS], 0
+                ld a, [WRAM_SCORE_HUNDREDS]
+                inc a
+                cp $0a
+                jr nz, .carryHundred
+                    copy [WRAM_SCORE_HUNDREDS], 0
+                    ld a, [WRAM_SCORE_THOUSANDS]
+                    inc a
+                    cp $0a
+                    jr nz, .thousandsOverflow
+                        ret
+                    .thousandsOverflow
+                    ld [WRAM_SCORE_THOUSANDS], a
+                    ret
+                .carryHundred
+                ld [WRAM_SCORE_HUNDREDS], a
+                ret
             .carryTen
-
+            ld [WRAM_SCORE_TENS], a
+            ret
         .carryOne
-
+        ld [WRAM_SCORE_ONES], a
 
         ret
 
