@@ -148,6 +148,7 @@ section "level", rom0
     UpdatePlayingGraphics:
         call UpdatePlayerGraphics
         call UpdateScrollGraphics
+        call UpdateScoreGraphics
         ret
 
     UpdateLosingGraphics:
@@ -183,6 +184,29 @@ section "level", rom0
 
         ret
 
+    UpdateScoreGraphics:
+        ld a, 16
+        ld b, a ;x pos
+
+        ld a, [WRAM_SCORE_THOUSANDS]
+        call WriteNumberAtAToXPositionB
+
+        inc b
+        ld a, [WRAM_SCORE_HUNDREDS]
+        call WriteNumberAtAToXPositionB
+
+        inc b
+        ld a, [WRAM_SCORE_TENS]
+        call WriteNumberAtAToXPositionB
+
+        inc b
+        ld a, [WRAM_SCORE_ONES]
+        call WriteNumberAtAToXPositionB
+
+        
+
+        ret
+
     UpdateLogicFuncTable:
         dw UpdateResettingStage0Logic
         dw UpdateResettingStage1Logic
@@ -196,6 +220,7 @@ section "level", rom0
         dw UpdateFadeOutLogic
 
     UpdateResettingStage0Logic:
+        ;never gets called
         ret
 
     UpdateResettingStage1Logic:
@@ -204,6 +229,10 @@ section "level", rom0
         ld [WRAM_SCROLL_X_MIDGROUND], a
         ld [WRAM_SCROLL_X_BACKGROUND], a
         ld [WRAM_TOP_SCROLL_COUNTER], a
+        ld [WRAM_SCORE_ONES], a
+        ld [WRAM_SCORE_TENS], a
+        ld [WRAM_SCORE_HUNDREDS], a
+        ld [WRAM_SCORE_THOUSANDS], a
 
         call InitBouncerLogic
 
@@ -230,7 +259,7 @@ section "level", rom0
         ret z ;continue if fade unfinished
 
         copy [WRAM_LEVEL_STATE], STATE_PLAYING
-
+        ret
     
     UpdatePlayingLogic:
         call UpdatePlayerLogic
@@ -299,6 +328,24 @@ section "level", rom0
         .everyOtherFrame
 
         call UpdateBouncers
+
+        ret
+
+    IncrementScore:
+        ld a, [WRAM_SCORE_ONES]
+        inc a
+        cp $0a
+        jr nz, .carryOne
+            copy [WRAM_SCORE_ONES], 9
+            ld a, [WRAM_SCORE_TENS]
+            inc a
+            cp $0a
+            jr nz, .carryTen
+                
+            .carryTen
+
+        .carryOne
+
 
         ret
 

@@ -49,4 +49,20 @@ section "text", rom0
 
     ret
 
-export WriteMessageAtDEToColumnBAndVerticalOffsetC
+    WriteNumberAtAToXPositionB:
+        add a, $80 + 26 ;offset to tile index
+        ld c, a ;tile index
+
+        ; add tile base to x position for tile address
+        ld hl, _SCRN0
+        ld e, b
+        xor a
+        ld d, a
+        add hl, de
+        
+        ld a, c
+        ld [hl], a
+
+        ret
+
+export WriteMessageAtDEToColumnBAndVerticalOffsetC, WriteNumberAtAToXPositionB
