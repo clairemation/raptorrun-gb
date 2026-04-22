@@ -1,7 +1,7 @@
-include "hardware.inc"
-
 if !def(PLAYER_CONSTS_INC)
 def PLAYER_CONSTS_INC equ 1
+
+include "hardware.inc"
 
 ;sprites
 def TOP_LEFT_SPRITE_ADDRESS equ (_OAMRAM)

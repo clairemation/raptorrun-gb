@@ -18,7 +18,9 @@ rgbasm -Werror -Weverything -o build/titlescreen.o titlescreen.asm
 [ $? -eq 0 ] || exit 1
 rgbasm -Werror -Weverything -o build/fadescreen.o fadescreen.asm
 [ $? -eq 0 ] || exit 1
-rgblink --dmg --map dist/raptorrun.map --sym dist/raptorrun.sym -o dist/raptorrun.gb build/main.o build/game.o build/level.o build/utils.o build/graphicsdata.o build/interrupts.o build/player.o build/bouncers.o build/titlescreen.o build/fadescreen.o
+rgbasm -Werror -Weverything -o build/text.o text.asm
+[ $? -eq 0 ] || exit 1
+rgblink --dmg --map dist/raptorrun.map --sym dist/raptorrun.sym -o dist/raptorrun.gb build/main.o build/game.o build/level.o build/utils.o build/graphicsdata.o build/interrupts.o build/player.o build/bouncers.o build/titlescreen.o build/fadescreen.o build/text.o
 [ $? -eq 0 ] || exit 1
 rgbfix --title RaptorRun --mbc-type 0x19 --pad-value 0 --validate dist/raptorrun.gb
 [ $? -eq 0 ] || exit 1

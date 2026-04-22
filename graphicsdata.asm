@@ -93,7 +93,7 @@ section "level-graphics", rom0
 
         ret
 
-section "text", rom0
+section "text_data", rom0
 GameOverText:
     db "GAME OVER;"
 PressStartText:
