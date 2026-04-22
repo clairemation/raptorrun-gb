@@ -98,6 +98,8 @@ GameOverText:
     db "GAME OVER;"
 PressStartText:
     db "PRESS START;"
+ScoreText:
+    db "SCORE;"
 
 
 section "sprites_data", romx[SPRITES_ROM_START], bank[1]
@@ -272,4 +274,4 @@ section "fonttiles", romx[FONT_TILESET_START], bank[3]
 FontTiles:
     incbin "graphics/font.bin"
 
-export InitGraphicsData, GameOverText, PressStartText, FontTiles
+export InitGraphicsData, GameOverText, PressStartText, ScoreText, FontTiles

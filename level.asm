@@ -126,6 +126,7 @@ section "level", rom0
 
     UpdateResettingStage0Graphics:
         ClearTextLines
+        call WriteWordScore
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_1
         ret
 
@@ -136,6 +137,7 @@ section "level", rom0
         ret
         
     UpdateResettingStage2Graphics:
+        ; never gets called
         ret
 
     UpdateFadeInGraphics:
@@ -337,6 +339,16 @@ section "level", rom0
         call WriteMessageAtDEToColumnBAndVerticalOffsetC
 
         ret 
+
+    WriteWordScore:
+
+        ld de, ScoreText
+        ld b, 10
+        xor a
+        ld c, a
+        call WriteMessageAtDEToColumnBAndVerticalOffsetC
+        
+        ret
 
     LoseLevel:
         copy [WRAM_LEVEL_STATE], STATE_LOSING
