@@ -6,6 +6,10 @@ include "player-consts.inc"
 include "random.inc"
 include "game.inc"
 
+def FIRST_LINE_INTERRUPT    equ(8)
+def SECOND_LINE_INTERRUPT   equ(21)
+def THIRD_LINE_INTERRUPT    equ(40)
+
 rsreset
 def STATE_RESETTING_STAGE_0 rb 1
 def STATE_RESETTING_STAGE_1 rb 1
@@ -170,11 +174,10 @@ section "level", rom0
         ret
 
     UpdateScrollGraphics:
-        copy [rSCX], [WRAM_SCROLL_X_MIDGROUND]
+        copy [rSCX], 0 ;no scroll, for text at top of screen
+        EnableLineCompareInterrupt FIRST_LINE_INTERRUPT
 
         call UpdateBouncerGraphics
-
-        EnableLineCompareInterrupt 13
 
         ret
 
@@ -357,10 +360,17 @@ section "level", rom0
 
         ldh a, [rLY]
 
-        cp 13
+        cp FIRST_LINE_INTERRUPT
+        jr nz, .topSection
+            copyHighToMemory [rSCX], [WRAM_SCROLL_X_MIDGROUND]
+            EnableLineCompareInterrupt SECOND_LINE_INTERRUPT
+            ret
+        .topSection
+
+        cp SECOND_LINE_INTERRUPT
         jr nz, .middleSection
             copyHighToMemory [rSCX], [WRAM_SCROLL_X_BACKGROUND]
-            EnableLineCompareInterrupt 32
+            EnableLineCompareInterrupt THIRD_LINE_INTERRUPT
             ret
         .middleSection
             
