@@ -353,6 +353,11 @@ section "level", rom0
                     inc a
                     cp $0a
                     jr nz, .thousandsOverflow
+                        ; just max out at 9999
+                        copy [WRAM_SCORE_ONES], 9
+                        copy [WRAM_SCORE_TENS], 9
+                        copy [WRAM_SCORE_HUNDREDS], 9
+                        copy [WRAM_SCORE_THOUSANDS], 9
                         ret
                     .thousandsOverflow
                     ld [WRAM_SCORE_THOUSANDS], a
