@@ -133,6 +133,7 @@ section "level", rom0
     UpdateResettingStage1Graphics:
         call UpdateScrollGraphics
         call InitPlayerGraphics
+        call UpdateScoreGraphics
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_2
         ret
         
