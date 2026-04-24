@@ -24,27 +24,6 @@ macro LoadFontTilesetIntoVRAM
 
 endm
 
-; clear the OAM
-macro InitOAM
-    ld c, OAM_COUNT
-    ld hl, _OAMRAM
-    ld de, sizeof_OAM_ATTRS
-    .init_oam\@
-        ld [hl], 0
-        add hl, de
-        dec c
-        jr nz, .init_oam\@
-endm
-
-macro InitPallettes
-    ; init the palettes
-    ld a, %11100100
-    ldh [rBGP], a
-    ldh [rOBP0], a
-    ld a, %00011011
-    ldh [rOBP1], a
-endm
-
 macro SetGraphicsParameters
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
 endm
@@ -63,7 +42,7 @@ section "level-graphics", rom0
 
         LoadFontTilesetIntoVRAM
 
-        InitOAM
+        call InitOAM
 
 
         ; init sprite 0

@@ -21,13 +21,29 @@ macro InitPallettes
     ldh [rOBP1], a
 endm
 
-macro WaitForStartPress
-    UpdatePadInput WRAM_PAD_INPUT
+macro CheckForStartPress
     TestPadInput_AnyButtonsPressed WRAM_PAD_INPUT, PADF_START | PADF_A | PADF_B
     jr z, .startIsPressed\@
         PlayStartSound
         copy [WRAM_TITLESCREEN_STATE], STATE_STARTING
     .startIsPressed\@
+endm
+
+macro CheckForDPadPress
+    TestPadInput_Pressed WRAM_PAD_INPUT, PADF_LEFT
+    jr nz, .leftIsPressed
+        copy [_OAMRAM + OAMA_X], 14 ;move cursor
+        xor a
+        ld [WRAM_SELECTION], a
+        jr .checkOver
+    .leftIsPressed
+    
+    TestPadInput_Pressed WRAM_PAD_INPUT, PADF_RIGHT
+    jr nz, .rightIsPressed
+        copy [_OAMRAM + OAMA_X], 64 ;move cursor
+        copy [WRAM_SELECTION], 1
+    .rightIsPressed
+    .checkOver
 endm
 
 macro PlayStartSound
@@ -99,9 +115,8 @@ InitTitleScreen:
     inc hl
     call LoadBytesToHLFromBCToDE
     copy [rROMB0], 2
-    
 
-
+    ;load tilemap
     ld bc, TitleTilemapStart
     ; load de with tileset rom end
     ld hl, TitleTilemapStart
@@ -113,12 +128,20 @@ InitTitleScreen:
     ld hl, $9800
     call LoadBytesToHLFromBCToDE
 
+    call InitOAM
+
     ld a, $84
     ld bc, TitleText
     ld hl, 32 * 16
     call WriteStringAtBCToTileIndexHLWithCharsetOffsetA
 
-    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJOFF | LCDCF_BGON
+    ;init cursor
+    copy [_OAMRAM + OAMA_TILEID], 0
+    copy [_OAMRAM + OAMA_X], 14
+    copy [_OAMRAM + OAMA_Y], 145
+    copy [_OAMRAM + OAMA_FLAGS], OAMF_PAL0
+
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
     ldh [rLCDC], a
 
     ; enable the vblank interrupt
@@ -134,33 +157,38 @@ InitTitleScreen:
     ret 
 
 UpdateTitleScreen:
-    .vblank
-        halt 
-        nop
-        ld a, [WRAM_IS_VBLANK]
-        cp 1
-        jr nz, .vblank
-
-    copy [WRAM_IS_VBLANK], 0
+    call WaitForVBlank
     
-    ; ;graphics
-    ld a, [WRAM_CURRENT_PALETTE]
-    ldh [rBGP], a
+    CallJumpTableFunction [WRAM_TITLESCREEN_STATE], UpdateFunctionTable
     
-    ; ;logic
+    ret
 
-    ld a, [WRAM_TITLESCREEN_STATE]
-    cp STATE_WAITING ;waiting
-    jr nz, .stateWaiting
-        WaitForStartPress
+
+UpdateFunctionTable:
+    dw UpdateWaiting
+    dw UpdateStarting
+
+UpdateWaiting:
+    jp nz, .stateWaiting
+        UpdatePadInput WRAM_PAD_INPUT
+        CheckForDPadPress
+        CheckForStartPress
         ret
     .stateWaiting
+    ret 
 
-    ;starting state - fade out
+UpdateStarting:
+    ; graphics
+    ld a, [WRAM_CURRENT_PALETTE]
+    ldh [rBGP], a
+    ldh [rOBP0], a
+
+    ;logic
 
     call UpdateScreenFade ;sets a to 1 or 0 if fade is active or finished, respectively
     ; continue loop if fade is active
     cp a, 1
+
     ret z
         
     ;else call init level (ending the loop)
