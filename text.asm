@@ -27,13 +27,19 @@ section "text", rom0
             cp a, $20 ;space
             jr nz, .space
                 xor a ;space character gets tile #0
-                jr .spaceCheckDone
+                jr .specialCharacterCheckDone
             .space
-                ;apply charset offset
-                ld d, a
-                ldh a, [HRAM_SCRATCH_BYTES]
-                add a, d
-            .spaceCheckDone 
+            cp a, $2e ;period
+            jr nz, .period
+                ld a, $e9
+                jr .specialCharacterCheckDone
+            .period
+
+            ;apply charset offset
+            ld d, a
+            ldh a, [HRAM_SCRATCH_BYTES]
+            add a, d
+            .specialCharacterCheckDone 
             
             push hl; save hl
 

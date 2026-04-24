@@ -24,8 +24,16 @@ endm
 macro CheckForStartPress
     TestPadInput_AnyButtonsPressed WRAM_PAD_INPUT, PADF_START | PADF_A | PADF_B
     jr z, .startIsPressed\@
-        PlayStartSound
-        copy [WRAM_TITLESCREEN_STATE], STATE_STARTING
+        ld a, [WRAM_SELECTION]
+        cp 0
+        jr nz, .playGame\@
+            PlayStartSound
+            copy [WRAM_TITLESCREEN_STATE], STATE_STARTING
+            jr .doneComparing
+        .playGame\@
+            call InitInstructionsScreen
+        .doneComparing
+        
     .startIsPressed\@
 endm
 

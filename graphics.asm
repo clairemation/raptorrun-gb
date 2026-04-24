@@ -22,4 +22,24 @@ section "graphics-functions", rom0
         ldh [rOBP1], a
         ret
 
-export InitOAM, InitPallettes
+    ClearBackground:
+        ld hl, $9800
+        ld de, $9800 + 1024
+
+        .loop
+            xor a
+            ld [hli], a
+
+            ld a, h
+            cp a, d
+            jr nz, .highByteMatches
+                ;compare low byte
+                ld a, l
+                cp a, e
+                ret z
+            .highByteMatches
+            jr .loop
+        
+        ret
+
+export InitOAM, InitPallettes, ClearBackground
