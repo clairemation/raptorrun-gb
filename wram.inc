@@ -20,6 +20,7 @@ def MODE_RAM    rb 1
 rsset MODE_RAM
 ;titlescreen mode
 def WRAM_TITLESCREEN_STATE  rb 1
+def WRAM_SELECTION  rb 1
 
 rsset MODE_RAM
 ; level mode

@@ -3,6 +3,54 @@ include "utils.inc"
 
 section "text", rom0
 
+    WriteStringAtBCToTileIndexHLWithCharsetOffsetA:
+        ldh [HRAM_SCRATCH_BYTES], a ;save charsetOffset
+
+        .loop
+            ;load next character
+            ld a, [bc]
+
+            cp $3b ;semicolon - eos
+            ret z
+            
+            cp $2f ;forward slash - line break
+            jr nz, .linebreak
+                ld de, 32
+                add hl, de
+                ld a, l
+                and a, %11100000 ;round down to nearest 32, i.e. left side of screen
+                ld l, a
+                inc bc
+                jr .loop
+            .linebreak
+
+            cp a, $20 ;space
+            jr nz, .space
+                xor a ;space character gets tile #0
+                jr .spaceCheckDone
+            .space
+                ;apply charset offset
+                ld d, a
+                ldh a, [HRAM_SCRATCH_BYTES]
+                add a, d
+            .spaceCheckDone 
+            
+            push hl; save hl
+
+            ld de, _SCRN0
+            add hl, de
+            ld [hl], a
+
+            pop hl
+
+            inc bc
+            inc hl
+
+            jr .loop
+
+
+        ret
+
     ; use when screen scroll is wrapping around
     WriteMessageAtDEToColumnBAndVerticalOffsetC:
 
@@ -65,4 +113,4 @@ section "text", rom0
 
         ret
 
-export WriteMessageAtDEToColumnBAndVerticalOffsetC, WriteNumberAtAToXPositionB
+export WriteMessageAtDEToColumnBAndVerticalOffsetC, WriteNumberAtAToXPositionB, WriteStringAtBCToTileIndexHLWithCharsetOffsetA

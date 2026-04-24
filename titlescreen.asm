@@ -2,9 +2,10 @@ include "hardware.inc"
 include "utils.inc"
 include "wram.inc"
 include "game.inc"
+include "graphics-size.inc"
 
 def TITLE_TILEMAP_SIZE    equ (1024)
-def TITLE_TILESET_SIZE    equ (3712)
+def TITLE_TILESET_SIZE    equ (3152)
 
 def STATE_WAITING   equ(0)
 def STATE_STARTING  equ(1)
@@ -39,7 +40,9 @@ endm
 
 section "titlescreen", rom0
 InitTitleScreen:
-    copy [WRAM_GAME_STATE], 0
+    xor a
+    ld [WRAM_GAME_STATE], a
+    ld [WRAM_SELECTION], a
     copy [WRAM_TITLESCREEN_STATE], STATE_WAITING
 
     InitPallettes
@@ -49,6 +52,16 @@ InitTitleScreen:
     DisableLCD
 
     copy [rROMB0], 2
+
+    ;load block 0
+    ld bc, UIGraphicsData
+    ld de, UIGraphicsData
+    ld hl, 16
+    add hl, de
+    ld d, h
+    ld e, l
+    ld hl, $8000
+    call LoadBytesToHLFromBCToDE
 
     ; load block 2
     
@@ -65,10 +78,9 @@ InitTitleScreen:
 
     ; load block 1
 
-    ; load bc with midpoint + 1
+    ; load bc with midpoint
     ld b, d
     ld c, e
-    ; inc bc
     ; load de with tileset rom end
     ld hl, TitleTilesetStart
     ld de, TITLE_TILESET_SIZE
@@ -78,6 +90,16 @@ InitTitleScreen:
     ; set destination
     ld hl, $8800
     call LoadBytesToHLFromBCToDE
+
+    ;load the rest with font tiles
+    copy [rROMB0], 3
+    ld bc, FontTiles
+    inc bc ;tiles come out corrupted if I don't do this?
+    ld de, ROM_END
+    inc hl
+    call LoadBytesToHLFromBCToDE
+    copy [rROMB0], 2
+    
 
 
     ld bc, TitleTilemapStart
@@ -90,6 +112,11 @@ InitTitleScreen:
     ; set destination
     ld hl, $9800
     call LoadBytesToHLFromBCToDE
+
+    ld a, $84
+    ld bc, TitleText
+    ld hl, 32 * 16
+    call WriteStringAtBCToTileIndexHLWithCharsetOffsetA
 
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJOFF | LCDCF_BGON
     ldh [rLCDC], a
@@ -149,5 +176,13 @@ section "title-tilemap", romx, bank[2]
 TitleTilemapStart:
     incbin "graphics/titlemap.tlm"
     
+section "title-text-data", romx, bank[2]
+    TitleText:
+        db "  PLAY  INSTRUCTIONS;"
+
+section "ui-sprite", romx, bank[2]
+    UIGraphicsData:
+        DB $80,$80,$E0,$E0,$F8,$F8,$FE,$FE
+        DB $F8,$F8,$E0,$E0,$80,$80,$00,$00
 
 export InitTitleScreen, UpdateTitleScreen
