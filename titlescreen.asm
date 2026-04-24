@@ -7,18 +7,21 @@ include "graphics-size.inc"
 def TITLE_TILEMAP_SIZE    equ (1024)
 def TITLE_TILESET_SIZE    equ (3152)
 
-def STATE_WAITING   equ(0)
-def STATE_STARTING  equ(1)
+rsreset
+def STATE_OPENING   rb 1
+def STATE_WAITING   rb 1
+def STATE_STARTING_GAME  rb 1
+def STATE_OPENING_INSTRUCTIONS rb 1
 
 def PALETTE_NORMAL  equ(%11100100)
 
 macro InitPallettes
     ; init the palettes
-    ld a, PALETTE_NORMAL
+    ld a, %00000000
     ldh [rBGP], a
     ldh [rOBP0], a
-    ld a, %00011011
-    ldh [rOBP1], a
+    copy [WRAM_CURRENT_PALETTE_INDEX], 0
+    copy [WRAM_CURRENT_PALETTE], %00000000
 endm
 
 macro CheckForStartPress
@@ -28,10 +31,12 @@ macro CheckForStartPress
         cp 0
         jr nz, .playGame\@
             PlayStartSound
-            copy [WRAM_TITLESCREEN_STATE], STATE_STARTING
+            copy [WRAM_DESTINATION_FADE], 6
+            copy [WRAM_TITLESCREEN_STATE], STATE_STARTING_GAME
             jr .doneComparing
         .playGame\@
-            call InitInstructionsScreen
+            copy [WRAM_DESTINATION_FADE], 0
+            copy [WRAM_TITLESCREEN_STATE], STATE_OPENING_INSTRUCTIONS
         .doneComparing
         
     .startIsPressed\@
@@ -67,11 +72,11 @@ InitTitleScreen:
     xor a
     ld [WRAM_GAME_STATE], a
     ld [WRAM_SELECTION], a
-    copy [WRAM_TITLESCREEN_STATE], STATE_WAITING
+    copy [WRAM_TITLESCREEN_STATE], STATE_OPENING
 
     InitPallettes
     call InitScreenFade
-    copy [WRAM_DESTINATION_FADE], 6
+    copy [WRAM_DESTINATION_FADE], 3
 
     DisableLCD
 
@@ -173,8 +178,27 @@ UpdateTitleScreen:
 
 
 UpdateFunctionTable:
+    dw UpdateOpening
     dw UpdateWaiting
-    dw UpdateStarting
+    dw UpdateStartingGame
+    dw UpdateOpeningInstructions
+
+UpdateOpening:
+    ; graphics
+    ld a, [WRAM_CURRENT_PALETTE]
+    ldh [rBGP], a
+    ldh [rOBP0], a
+
+    ;logic
+
+    call UpdateScreenFade ;sets a to 1 or 0 if fade is active or finished, respectively
+    ; continue loop if fade is active
+    cp a, 1
+
+    ret z
+
+    copy [WRAM_TITLESCREEN_STATE], STATE_WAITING
+    ret
 
 UpdateWaiting:
     jp nz, .stateWaiting
@@ -185,7 +209,7 @@ UpdateWaiting:
     .stateWaiting
     ret 
 
-UpdateStarting:
+UpdateStartingGame:
     ; graphics
     ld a, [WRAM_CURRENT_PALETTE]
     ldh [rBGP], a
@@ -202,6 +226,25 @@ UpdateStarting:
     ;else call init level (ending the loop)
     call InitLevel
     ret
+
+UpdateOpeningInstructions:
+    ; graphics
+    ld a, [WRAM_CURRENT_PALETTE]
+    ldh [rBGP], a
+    ldh [rOBP0], a
+
+    ;logic
+
+    call UpdateScreenFade ;sets a to 1 or 0 if fade is active or finished, respectively
+    ; continue loop if fade is active
+    cp a, 1
+
+    ret z
+        
+    ;else call init level (ending the loop)
+    call InitInstructionsScreen
+    ret
+    
 
 
 section "title-tileset", romx, bank[2]

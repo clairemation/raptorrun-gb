@@ -7,37 +7,30 @@ include "graphics-size.inc"
 def TITLE_TILEMAP_SIZE    equ (1024)
 def TITLE_TILESET_SIZE    equ (3152)
 
-def STATE_WAITING   equ(0)
-def STATE_STARTING  equ(1)
+rsreset
+def STATE_OPENING rb 1
+def STATE_WAITING   rb 1
+def STATE_RETURNING_TO_TITLESCREEN  rb 1
 
-def PALETTE_NORMAL  equ(%11100100)
-
-macro InitPallettes
-    ; init the palettes
-    ld a, PALETTE_NORMAL
-    ldh [rBGP], a
-    ldh [rOBP0], a
-    ld a, %00011011
-    ldh [rOBP1], a
-endm
 
 macro CheckForStartPress
     UpdatePadInput WRAM_PAD_INPUT
     TestPadInput_AnyButtonsPressed WRAM_PAD_INPUT, PADF_START | PADF_A | PADF_B
     jr z, .startIsPressed\@
-        call InitTitleScreen
+        copy [WRAM_DESTINATION_FADE], 0
+        copy [WRAM_INSTRUCTIONS_SCREEN_STATE], STATE_RETURNING_TO_TITLESCREEN
     .startIsPressed\@
 endm
 
 section "instructions-screen", rom0
 InitInstructionsScreen:
     copy [WRAM_GAME_STATE], STATE_INSTRUCTIONSSCREEN
-
-    InitPallettes
-    call InitScreenFade
-    copy [WRAM_DESTINATION_FADE], 6
+    copy [WRAM_INSTRUCTIONS_SCREEN_STATE], STATE_OPENING
 
     DisableLCD
+
+    copy [WRAM_DESTINATION_FADE], 3
+
 
     call InitOAM
 
@@ -62,7 +55,35 @@ InitInstructionsScreen:
 UpdateInstructionsScreen:
     call WaitForVBlank
     
-    CheckForStartPress
+    ld a, [WRAM_INSTRUCTIONS_SCREEN_STATE]
+
+    cp a, STATE_OPENING
+    jr nz, .opening
+        ld a, [WRAM_CURRENT_PALETTE]
+        ld [rBGP], a
+        ld [rOBP0], a
+
+        call UpdateScreenFade
+        cp 1
+        ret z
+        copy [WRAM_INSTRUCTIONS_SCREEN_STATE], STATE_WAITING
+        ret
+    .opening
+    cp a, STATE_WAITING
+    jr nz, .waiting
+        CheckForStartPress
+        ret
+    .waiting
+    ;exiting
+    ld a, [WRAM_CURRENT_PALETTE]
+    ld [rBGP], a
+    ld [rOBP0], a
+
+    call UpdateScreenFade
+    cp 1
+    ret z
+    call InitTitleScreen
+    ret
     
     ret
 

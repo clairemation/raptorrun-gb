@@ -23,6 +23,10 @@ def WRAM_TITLESCREEN_STATE  rb 1
 def WRAM_SELECTION  rb 1
 
 rsset MODE_RAM
+;instructions screen mode
+def WRAM_INSTRUCTIONS_SCREEN_STATE  rb 1
+
+rsset MODE_RAM
 ; level mode
 def WRAM_LEVEL_STATE    rb 1
 def WRAM_SCORE_ONES    rb 1

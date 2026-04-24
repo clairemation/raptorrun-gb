@@ -14,8 +14,6 @@ def PALETTE_DARKEST  equ(%11111111)
 section "fadescreen", rom0
 
     InitScreenFade:
-        copy [WRAM_CURRENT_PALETTE_INDEX], 3 ;normal
-        copy [WRAM_CURRENT_PALETTE], PALETTE_NORMAL
         copy [WRAM_FADE_FRAME_COUNTDOWN], 8
         ret
 

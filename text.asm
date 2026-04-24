@@ -3,6 +3,7 @@ include "utils.inc"
 
 section "text", rom0
 
+    ;use when scx and scy are 0, when text may flow to successive lines
     WriteStringAtBCToTileIndexHLWithCharsetOffsetA:
         ldh [HRAM_SCRATCH_BYTES], a ;save charsetOffset
 
@@ -57,7 +58,7 @@ section "text", rom0
 
         ret
 
-    ; use when screen scroll is wrapping around
+    ; use when screen scroll may be wrapping around
     WriteMessageAtDEToColumnBAndVerticalOffsetC:
 
     .loop
