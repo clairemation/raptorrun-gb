@@ -79,7 +79,6 @@ macro UpdatePadInput
 
 endm
 
-
 macro TestPadInput_Pressed
     ld a, [\1 + PAD_INPUT_PRESSED]
     and a, \2
@@ -94,6 +93,15 @@ endm
 macro TestPadInput_HeldAll
     ld a, [\1 + PAD_INPUT_CURRENT]
     and a, \2
+endm
+
+macro TestPadInput_AnyButtonsPressed ;nz if true
+    ld a, \2
+    cpl a
+    ld b, a
+    ld a, [\1 + PAD_INPUT_PRESSED]
+    or a, b
+    cp a, $ff
 endm
 
 

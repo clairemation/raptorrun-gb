@@ -22,8 +22,8 @@ endm
 
 macro WaitForStartPress
     UpdatePadInput WRAM_PAD_INPUT
-    TestPadInput_Pressed WRAM_PAD_INPUT, PADF_START
-    jr nz, .startIsPressed\@
+    TestPadInput_AnyButtonsPressed WRAM_PAD_INPUT, PADF_START | PADF_A | PADF_B
+    jr z, .startIsPressed\@
         PlayStartSound
         copy [WRAM_TITLESCREEN_STATE], STATE_STARTING
     .startIsPressed\@
