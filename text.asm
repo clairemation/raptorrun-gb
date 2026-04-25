@@ -65,7 +65,15 @@ section "text", rom0
         ld a, [de]
         cp $3B ; semicolon - sentinal character
         ret z ; exit if end of string
+
+        cp a, $20 ;space
+        jr nz, .space
+            xor a ;space character gets tile #0
+            jr .specialCharacterCheckDone
+        .space
         add a, $3f ;offset from ascii value to tile index
+        .specialCharacterCheckDone
+
         copyHighToMemory [HRAM_SCRATCH_BYTES], a ;tile index
 
         ;backup de
