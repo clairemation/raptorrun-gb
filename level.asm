@@ -138,7 +138,6 @@ section "level", rom0
 
     UpdateResettingStage0Graphics:
         ClearTextLines2
-        call WriteWordScore
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_1
         ret
 
@@ -150,7 +149,9 @@ section "level", rom0
         ret
         
     UpdateResettingStage2Graphics:
-        ; never gets called
+        call WriteWordScore
+        copy [WRAM_DESTINATION_FADE], 3 ;normal
+        copy [WRAM_LEVEL_STATE], STATE_FADEIN
         ret
 
     UpdateFadeInGraphics:
@@ -261,8 +262,6 @@ section "level", rom0
         ret
 
     UpdateResettingStage2Logic:
-        copy [WRAM_DESTINATION_FADE], 3 ;normal
-        copy [WRAM_LEVEL_STATE], STATE_FADEIN
         ret
 
     UpdateFadeInLogic:
