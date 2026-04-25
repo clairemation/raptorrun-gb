@@ -8,7 +8,7 @@ include "game.inc"
 
 def FIRST_LINE_INTERRUPT    equ(8)
 def SECOND_LINE_INTERRUPT   equ(21)
-def THIRD_LINE_INTERRUPT    equ(40)
+def THIRD_LINE_INTERRUPT    equ(111)
 
 rsreset
 def STATE_RESETTING_STAGE_0 rb 1
@@ -375,7 +375,7 @@ section "level", rom0
 
     WriteLostMessageLine0:
         ; add current scroll x tile
-        ld a, [WRAM_SCROLL_X_FOREGROUND]
+        ld a, [WRAM_SCROLL_X_BACKGROUND]
         srl a
         srl a
         srl a
@@ -393,7 +393,7 @@ section "level", rom0
 
     WriteLostMessageLine1:
 
-        ld a, [WRAM_SCROLL_X_FOREGROUND]
+        ld a, [WRAM_SCROLL_X_BACKGROUND]
         srl a
         srl a
         srl a
