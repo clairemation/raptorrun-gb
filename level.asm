@@ -38,6 +38,18 @@ macro ClearTextLines
         jr nz, .eraseScreenLoop\@
 endm
 
+macro ClearTextLines2
+    ; clear text lines with original lines from tilemap in rom
+    ld hl, _SCRN0 + TEXT_LINE_0
+    ld de, BGTileMap + TEXT_LINE_0
+    ld b, 64
+    .eraseScreenLoop\@
+        copy [hli], [de]
+        inc de
+        sub b
+        jr nz, .eraseScreenLoop\@
+endm
+
 macro CheckForOutOfVBlank
     ld a, [rLY]
     cp 144
@@ -125,7 +137,7 @@ section "level", rom0
 
 
     UpdateResettingStage0Graphics:
-        ClearTextLines
+        ClearTextLines2
         call WriteWordScore
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_1
         ret
