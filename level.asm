@@ -271,7 +271,7 @@ section "level", rom0
     ;todo: stage no longer needed
     UpdateLosingLogic:
         ;keep scrolling to nearest half tile (to center text)
-        ld a, [WRAM_SCROLL_X_FOREGROUND]
+        ld a, [WRAM_SCROLL_X_BACKGROUND]
         and a, %00000111
         cp a, 4
         jr z, .positionNotReached
