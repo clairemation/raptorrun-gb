@@ -262,6 +262,6 @@ section "title-text-data", romx, bank[2]
 section "ui-sprite", romx, bank[2]
     UIGraphicsData:
         DB $3C,$3C,$62,$62,$C0,$C0,$C0,$C0
-        DB $C0,$C0,$60,$60,$30,$30,$38,$38
+        DB $E0,$E0,$78,$78,$3C,$3C,$18,$18
 
 export InitTitleScreen, UpdateTitleScreen
