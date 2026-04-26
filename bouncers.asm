@@ -2,6 +2,16 @@ include "utils.inc"
 include "wram.inc"
 include "random.inc"
 
+rsreset
+def BUBBLE_INDEX  rb 1
+def SKELETON_INDEX  rb 1
+def FERN_INDEX  rb 1
+
+def BUBBLE_ODDS equ(25)
+def SKELETON_ODDS   equ(25)
+def FERN_ODDS   equ (25)
+
+
 def TILEMAP_BASE_ADDRESS equ($9800)
 
 macro PopulateNextBouncerSlot
@@ -45,7 +55,7 @@ macro PopulateNextBouncerSlot
     jr .isEmpty\@
     
     .isTrike\@
-        ld a, $08
+        ld a, $60
         jr .randomComparisonDone\@
     .isSkeleton\@
         ld a, $0C

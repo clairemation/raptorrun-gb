@@ -222,7 +222,7 @@ Fall:
         ld a, [hl]
         and a
 
-        cp a, $08 ;trike
+        cp a, $60 ;trike
         jr z, .isTrike
         cp a, $0c
         jr z, .isSkeleton
@@ -231,6 +231,9 @@ Fall:
         jr .isEmpty
         .isTrike
             PlayBounce
+            call SquashBouncerAtHLInIndexB
+            copy [WRAM_SQUASHED_SKELETON_INDEX], b
+            copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], 8
             copy [PLAYER + SPEED], 40
             copy [PLAYER + STATE], STATE_RISING
             ret
