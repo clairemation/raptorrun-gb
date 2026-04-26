@@ -7,9 +7,10 @@ def BUBBLE_INDEX  rb 1
 def SKELETON_INDEX  rb 1
 def FERN_INDEX  rb 1
 
-def BUBBLE_ODDS equ(25)
-def SKELETON_ODDS   equ(25)
-def FERN_ODDS   equ (25)
+def BUBBLE_ODDS equ(10)
+def SKELETON_ODDS   equ(20)
+def FERN_ODDS   equ (30)
+def TRIKE_ODDS  equ (10)
 
 
 def TILEMAP_BASE_ADDRESS equ($9800)
@@ -46,15 +47,17 @@ macro PopulateNextBouncerSlot
 
     ;roll for next bouncer tile
     GetNextRandomValue WRAM_RANDOM
-    cp 25
-        jr c, .isTrike\@
-    cp 50
+    cp BUBBLE_ODDS
+        jr c, .isBubble\@
+    cp BUBBLE_ODDS + SKELETON_ODDS
         jr c, .isSkeleton\@
-    cp 75
+    cp BUBBLE_ODDS + SKELETON_ODDS + FERN_ODDS
         jr c, .isFern\@
+    cp BUBBLE_ODDS + SKELETON_ODDS + FERN_ODDS + TRIKE_ODDS
+        jr c, .isTrike\@
     jr .isEmpty\@
     
-    .isTrike\@
+    .isBubble\@
         ld a, $60
         jr .randomComparisonDone\@
     .isSkeleton\@
@@ -62,6 +65,9 @@ macro PopulateNextBouncerSlot
         jr .randomComparisonDone\@
     .isFern\@
         ld a, $14
+        jr .randomComparisonDone\@
+    .isTrike\@
+        ld a, $08
         jr .randomComparisonDone\@
     .isEmpty\@
         ld a, $00

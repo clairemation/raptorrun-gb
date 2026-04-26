@@ -38,6 +38,13 @@ macro PlayFernCrunch
     copyHighToMemory [rNR44], $c0
 endm
 
+macro PlayPop
+    copyHighToMemory [rNR41], $0c
+    copyHighToMemory [rNR42], $f1
+    copyHighToMemory [rNR43], $32
+    copyHighToMemory [rNR44], $c0
+endm
+
 macro PlayLose
     copyHighToMemory [rNR10], $1c
     copyHighToMemory [rNR11], $c0
@@ -45,6 +52,7 @@ macro PlayLose
     copyHighToMemory [rNR13], $3c
     copyHighToMemory [rNR14], $c5
 endm
+
 
 macro Die
     ;set sprite priority flags to appear behind bg
@@ -222,19 +230,21 @@ Fall:
         ld a, [hl]
         and a
 
-        cp a, $60 ;trike
-        jr z, .isTrike
+        cp a, $60
+        jr z, .isBubble
         cp a, $0c
         jr z, .isSkeleton
         cp a, $14
         jr z, .isFern
-        jr .isEmpty
-        .isTrike
-            PlayBounce
+        cp a, $08
+        jr z, .isTrike
+        jp .isEmpty
+        .isBubble
+            PlayPop
             call SquashBouncerAtHLInIndexB
             copy [WRAM_SQUASHED_SKELETON_INDEX], b
             copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], 8
-            copy [PLAYER + SPEED], 40
+            copy [PLAYER + SPEED], 30
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isSkeleton
@@ -249,7 +259,12 @@ Fall:
         .isFern
             PlayFernCrunch
             call SquashBouncerAtHLInIndexB
-            copy [PLAYER + SPEED], 35
+            copy [PLAYER + SPEED], 37
+            copy [PLAYER + STATE], STATE_RISING
+            ret
+        .isTrike
+            PlayBounce
+            copy [PLAYER + SPEED], 40
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isEmpty
