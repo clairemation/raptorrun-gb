@@ -8,7 +8,8 @@ include "game.inc"
 
 def FIRST_LINE_INTERRUPT    equ(8)
 def SECOND_LINE_INTERRUPT   equ(21)
-def THIRD_LINE_INTERRUPT    equ(111)
+def THIRD_LINE_INTERRUPT    equ(32)
+def FOURTH_LINE_INTERRUPT    equ(111)
 
 rsreset
 def STATE_RESETTING_STAGE_0 rb 1
@@ -217,8 +218,6 @@ section "level", rom0
         ld a, [WRAM_SCORE_ONES]
         call WriteNumberAtAToXPositionB
 
-        
-
         ret
 
     UpdateLogicFuncTable:
@@ -242,6 +241,7 @@ section "level", rom0
         ld [WRAM_SCROLL_X_FOREGROUND], a
         ld [WRAM_SCROLL_X_MIDGROUND], a
         ld [WRAM_SCROLL_X_BACKGROUND], a
+        ld [WRAM_SCROLL_X_FARBACKGROUND], a
         ld [WRAM_TOP_SCROLL_COUNTER], a
         ld [WRAM_SCORE_ONES], a
         ld [WRAM_SCORE_TENS], a
@@ -258,6 +258,8 @@ section "level", rom0
 
         ;; init random seed
         copy [WRAM_RANDOM], 1
+
+        copy [WRAM_THREES_COUNTER], 3
 
         ret
 
@@ -282,7 +284,7 @@ section "level", rom0
     ;todo: stage no longer needed
     UpdateLosingLogic:
         ;keep scrolling to nearest half tile (to center text)
-        ld a, [WRAM_SCROLL_X_BACKGROUND]
+        ld a, [WRAM_SCROLL_X_FARBACKGROUND]
         and a, %00000111
         cp a, 4
         jr z, .positionNotReached
@@ -327,9 +329,9 @@ section "level", rom0
 
         and a, %00000011 ;every 4 frames
         jr nz, .every4thFrame
-            ld a, [WRAM_SCROLL_X_BACKGROUND]
+            ld a, [WRAM_SCROLL_X_FARBACKGROUND]
             inc a
-            ld [WRAM_SCROLL_X_BACKGROUND], a
+            ld [WRAM_SCROLL_X_FARBACKGROUND], a
         .every4thFrame
 
         ld a, [WRAM_TOP_SCROLL_COUNTER]
@@ -339,6 +341,17 @@ section "level", rom0
             inc a
             ld [WRAM_SCROLL_X_MIDGROUND], a
         .everyOtherFrame
+
+        ;every 3 frames
+        ld a, [WRAM_THREES_COUNTER]
+        dec a
+        jr nz, .isZero
+            ld a, [WRAM_SCROLL_X_BACKGROUND]
+            inc a
+            ld [WRAM_SCROLL_X_BACKGROUND], a
+            ld a, 3
+        .isZero
+        ld [WRAM_THREES_COUNTER], a
 
         call UpdateBouncers
 
@@ -386,7 +399,7 @@ section "level", rom0
 
     WriteLostMessageLine0:
         ; add current scroll x tile
-        ld a, [WRAM_SCROLL_X_BACKGROUND]
+        ld a, [WRAM_SCROLL_X_FARBACKGROUND]
         srl a
         srl a
         srl a
@@ -404,7 +417,7 @@ section "level", rom0
 
     WriteLostMessageLine1:
 
-        ld a, [WRAM_SCROLL_X_BACKGROUND]
+        ld a, [WRAM_SCROLL_X_FARBACKGROUND]
         srl a
         srl a
         srl a
@@ -467,6 +480,13 @@ section "level", rom0
             EnableLineCompareInterrupt THIRD_LINE_INTERRUPT
             ret
         .middleSection
+
+        cp THIRD_LINE_INTERRUPT
+        jr nz, .backsection
+            copyHighToMemory [rSCX], [WRAM_SCROLL_X_FARBACKGROUND]
+            EnableLineCompareInterrupt FOURTH_LINE_INTERRUPT
+            ret
+        .backsection
             
         ;bottom Section i.e. rest of screen
         ;draw normal section scroll
