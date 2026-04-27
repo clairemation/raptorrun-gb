@@ -108,6 +108,7 @@ StateSpriteTable:
     db 12 ;falling
     db 16 ;dying
     db 16 ;dead
+    db 20 ;speeding up
 
 UpdatePlayerLogic:
     CallJumpTableFunction [PLAYER + STATE], UpdateFuncTable
@@ -121,6 +122,7 @@ UpdateFuncTable:
     dw UpdateFalling
     dw UpdateDying
     dw UpdateDead
+    dw UpdateSpeedingUp
 
 
 UpdateOnGround:
@@ -259,7 +261,7 @@ Fall:
         .isFern
             PlayFernCrunch
             call SquashBouncerAtHLInIndexB
-            copy [PLAYER + SPEED], 37
+            copy [PLAYER + SPEED], 35
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isTrike
@@ -304,6 +306,9 @@ UpdateDying:
     ret
 
 UpdateDead:
+    ret
+
+UpdateSpeedingUp:
     ret
 
 export InitPlayerGraphics, UpdatePlayerGraphics, UpdatePlayerLogic

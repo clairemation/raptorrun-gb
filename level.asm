@@ -92,6 +92,12 @@ macro StartSpeedUp
     ld a, [WRAM_SCROLL_INCREMENT]
     inc a
     ld [WRAM_SCROLL_INCREMENT], a
+    
+    copy [WRAM_PRIOR_PLAYER_STATE], [WRAM_PLAYER_STRUCT + STATE]
+
+    copy [WRAM_PLAYER_STRUCT + STATE], STATE_SPEEDING_UP
+
+    copy [WRAM_PLAYER_STRUCT + STATE], STATE_SPEEDING_UP
     copy [WRAM_SPEEDUP_COUNTDOWN], 30
     copy [WRAM_LEVEL_STATE], STATE_PREPARING_TO_SPEED_UP
 endm
@@ -233,6 +239,7 @@ section "level", rom0
         ret
 
     UpdatePreparingToSpeedUpGraphics:
+        call UpdatePlayerGraphics
         call UpdateScrollGraphics
         ret
 
@@ -374,6 +381,7 @@ section "level", rom0
         .thirdSound
         cp 0
         ret nz
+        copy [WRAM_PLAYER_STRUCT + STATE], [WRAM_PRIOR_PLAYER_STATE]
         copy [WRAM_LEVEL_STATE], STATE_PLAYING
 
         ret

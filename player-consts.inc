@@ -16,6 +16,7 @@ def STATE_FLAPPING  rb 1 ; 2
 def STATE_FALLING   rb 1 ; 3
 def STATE_DYING     rb 1 ; 4
 def STATE_DEAD      rb 1 ; 5
+def STATE_SPEEDING_UP rb 1 ;6
 
 ;player struct
 rsreset
