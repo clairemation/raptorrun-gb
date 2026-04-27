@@ -198,27 +198,27 @@ Fall:
         jr z, .isTrike
         jp .isEmpty
         .isBubble
-            ld hl, PopSound
-            call PlaySoundAtHL
             call SquashBouncerAtHLInIndexB
             copy [WRAM_SQUASHED_BOUNCER_INDEX], b
             copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
+            ld hl, PopSound
+            call PlaySoundAtHL
             copy [PLAYER + SPEED], 30
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isSkeleton
-            ld hl, SkeletonCrunchSound
-            call PlaySoundAtHL
             call SquashBouncerAtHLInIndexB
             copy [WRAM_SQUASHED_BOUNCER_INDEX], b
             copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
+            ld hl, SkeletonCrunchSound
+            call PlaySoundAtHL
             copy [PLAYER + SPEED], 30
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isFern
+            call SquashBouncerAtHLInIndexB
             ld hl, FernCrunchSound
             call PlaySoundAtHL
-            call SquashBouncerAtHLInIndexB
             copy [PLAYER + SPEED], 35
             copy [PLAYER + STATE], STATE_RISING
             ret
