@@ -17,6 +17,7 @@ def STATE_RESETTING_STAGE_1 rb 1
 def STATE_RESETTING_STAGE_2 rb 1
 def STATE_FADEIN    rb 1
 def STATE_PLAYING   rb 1
+def STATE_PREPARING_TO_SPEED_UP   rb 1
 def STATE_LOSING  rb 1
 def STATE_LOST_STAGE_0  rb 1
 def STATE_LOST_STAGE_1  rb 1
@@ -85,6 +86,38 @@ macro AddScrollIncrement
     ld a, [WRAM_SCROLL_INCREMENT]
     add a, b
     ld \1, a
+endm
+
+macro StartSpeedUp
+    ld a, [WRAM_SCROLL_INCREMENT]
+    inc a
+    ld [WRAM_SCROLL_INCREMENT], a
+    copy [WRAM_SPEEDUP_COUNTDOWN], 30
+    copy [WRAM_LEVEL_STATE], STATE_PREPARING_TO_SPEED_UP
+endm
+
+macro PlaySpeedupSound1
+    copyHighToMemory [rNR10], $15
+    copyHighToMemory [rNR11], $0d
+    copyHighToMemory [rNR12], $f1
+    copyHighToMemory [rNR13], $ce
+    copyHighToMemory [rNR14], $c5
+endm
+
+macro PlaySpeedupSound2
+    copyHighToMemory [rNR10], $15
+    copyHighToMemory [rNR11], $0d
+    copyHighToMemory [rNR12], $f1
+    copyHighToMemory [rNR13], $0b
+    copyHighToMemory [rNR14], $c6
+endm
+
+macro PlaySpeedupSound3
+    copyHighToMemory [rNR10], $26
+    copyHighToMemory [rNR11], $00
+    copyHighToMemory [rNR12], $f0
+    copyHighToMemory [rNR13], $21
+    copyHighToMemory [rNR14], $c7
 endm
 
 ; a = index of scroll function
@@ -162,6 +195,7 @@ section "level", rom0
         dw UpdateResettingStage2Graphics
         dw UpdateFadeInGraphics
         dw UpdatePlayingGraphics
+        dw UpdatePreparingToSpeedUpGraphics
         dw UpdateLosingGraphics
         dw UpdateLostStage0Graphics
         dw UpdateLostStage1Graphics
@@ -196,6 +230,10 @@ section "level", rom0
         call UpdatePlayerGraphics
         call UpdateScrollGraphics
         call UpdateScoreGraphics
+        ret
+
+    UpdatePreparingToSpeedUpGraphics:
+        call UpdateScrollGraphics
         ret
 
     UpdateLosingGraphics:
@@ -258,6 +296,7 @@ section "level", rom0
         dw UpdateResettingStage2Logic
         dw UpdateFadeInLogic
         dw UpdatePlayingLogic
+        dw UpdatePreparingToSpeedUpLogic
         dw UpdateLosingLogic
         dw UpdateLostStage0Logic
         dw UpdateLostStage1Logic
@@ -274,7 +313,7 @@ section "level", rom0
         ld [WRAM_SCROLL_X_MIDGROUND], a
         ld [WRAM_SCROLL_X_BACKGROUND], a
         ld [WRAM_SCROLL_X_FARBACKGROUND], a
-        ld [WRAM_TOP_SCROLL_COUNTER], a
+        ld [WRAM_TWOS_AND_FOURS_COUNTER], a
         ld [WRAM_SCORE_ONES], a
         ld [WRAM_SCORE_TENS], a
         ld [WRAM_SCORE_HUNDREDS], a
@@ -314,7 +353,31 @@ section "level", rom0
         call IncrementScore
         ret 
 
-    ;todo: stage no longer needed
+    UpdatePreparingToSpeedUpLogic:
+        ld a, [WRAM_SPEEDUP_COUNTDOWN]
+        dec a
+        ld [WRAM_SPEEDUP_COUNTDOWN], a
+        cp 29
+        jr nz, .firstSound
+            PlaySpeedupSound1
+            ret 
+        .firstSound
+        cp 20
+        jr nz, .secondSound
+            PlaySpeedupSound2
+            ret
+        .secondSound
+        cp 10
+        jr nz, .thirdSound
+            PlaySpeedupSound3
+            ret
+        .thirdSound
+        cp 0
+        ret nz
+        copy [WRAM_LEVEL_STATE], STATE_PLAYING
+
+        ret
+
     UpdateLosingLogic:
         ;keep scrolling to nearest half tile (to center text)
         ld a, [WRAM_SCROLL_X_FARBACKGROUND]
@@ -356,9 +419,9 @@ section "level", rom0
 
         ;increment counters
 
-        ld a, [WRAM_TOP_SCROLL_COUNTER]
+        ld a, [WRAM_TWOS_AND_FOURS_COUNTER]
         inc a
-        ld [WRAM_TOP_SCROLL_COUNTER], a
+        ld [WRAM_TWOS_AND_FOURS_COUNTER], a
 
         ld a, [WRAM_THREES_COUNTER]
         dec a
@@ -456,7 +519,7 @@ section "level", rom0
         ret
 
     ScrollValueAtDEOnePixelEveryOtherFrame:
-        ld a, [WRAM_TOP_SCROLL_COUNTER]
+        ld a, [WRAM_TWOS_AND_FOURS_COUNTER]
         and a, %00000001 ;every other frame
         ret nz
         ld a, [de]
@@ -474,7 +537,7 @@ section "level", rom0
         ret 
 
     ScrollValueAtDEOnePixelEveryFourFrames:
-        ld a, [WRAM_TOP_SCROLL_COUNTER]
+        ld a, [WRAM_TWOS_AND_FOURS_COUNTER]
         and a, %00000011 ;every fourth frame
         ret nz
         ld a, [de]
@@ -510,9 +573,7 @@ section "level", rom0
                         ret
                     .thousandsOverflow
                     ld [WRAM_SCORE_THOUSANDS], a
-                    ld a, [WRAM_SCROLL_INCREMENT]
-                    inc a
-                    ld [WRAM_SCROLL_INCREMENT], a
+                    StartSpeedUp
                     ret
                 .carryHundred
                 ld [WRAM_SCORE_HUNDREDS], a
