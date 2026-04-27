@@ -9,51 +9,6 @@ def PLAYER equ(WRAM_PLAYER_STRUCT)
 def STATE_PLAYING   equ(0)
 def STATE_LOST  equ(1)
 
-macro PlayFlap
-    copyHighToMemory [rNR41], $33
-    copyHighToMemory [rNR42], $f0
-    copyHighToMemory [rNR43], $80
-    copyHighToMemory [rNR44], $c0
-endm
-
-macro PlayBounce
-    copyHighToMemory [rNR10], $14
-    copyHighToMemory [rNR11], $4c
-    copyHighToMemory [rNR12], $f1
-    copyHighToMemory [rNR13], $9d
-    copyHighToMemory [rNR14], $c0
-endm
-
-macro PlayCrunch
-    copyHighToMemory [rNR41], $14
-    copyHighToMemory [rNR42], $f1
-    copyHighToMemory [rNR43], $52
-    copyHighToMemory [rNR44], $c0
-endm
-
-macro PlayFernCrunch
-    copyHighToMemory [rNR41], $00
-    copyHighToMemory [rNR42], $f1
-    copyHighToMemory [rNR43], $40
-    copyHighToMemory [rNR44], $c0
-endm
-
-macro PlayPop
-    copyHighToMemory [rNR41], $0c
-    copyHighToMemory [rNR42], $f1
-    copyHighToMemory [rNR43], $32
-    copyHighToMemory [rNR44], $c0
-endm
-
-macro PlayLose
-    copyHighToMemory [rNR10], $1c
-    copyHighToMemory [rNR11], $c0
-    copyHighToMemory [rNR12], $f7
-    copyHighToMemory [rNR13], $3c
-    copyHighToMemory [rNR14], $c5
-endm
-
-
 macro Die
     ;set sprite priority flags to appear behind bg
     ld hl, BOTTOM_LEFT_SPRITE_ADDRESS + OAMA_FLAGS
@@ -184,7 +139,8 @@ UpdateFalling:
         copy [PLAYER + SPEED], 0
         copy [PLAYER + FLAP_COOLDOWN], 6
         copy [PLAYER + STATE], STATE_FLAPPING
-        PlayFlap
+        ld hl, FlapSound
+        call PlaySoundAtHL
         GetNextRandomValue WRAM_RANDOM ;mix up random seed
     .jumpIsPressed
     call Fall
@@ -242,7 +198,8 @@ Fall:
         jr z, .isTrike
         jp .isEmpty
         .isBubble
-            PlayPop
+            ld hl, PopSound
+            call PlaySoundAtHL
             call SquashBouncerAtHLInIndexB
             copy [WRAM_SQUASHED_BOUNCER_INDEX], b
             copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
@@ -250,7 +207,8 @@ Fall:
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isSkeleton
-            PlayCrunch
+            ld hl, SkeletonCrunchSound
+            call PlaySoundAtHL
             call SquashBouncerAtHLInIndexB
             copy [WRAM_SQUASHED_BOUNCER_INDEX], b
             copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
@@ -258,13 +216,15 @@ Fall:
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isFern
-            PlayFernCrunch
+            ld hl, FernCrunchSound
+            call PlaySoundAtHL
             call SquashBouncerAtHLInIndexB
             copy [PLAYER + SPEED], 35
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isTrike
-            PlayBounce
+            ld hl, BounceSound
+            call PlaySoundAtHL
             copy [PLAYER + SPEED], 40
             copy [PLAYER + STATE], STATE_RISING
             ret
@@ -297,7 +257,8 @@ UpdateDying:
     jr .yLessThan130
     .yGTOrEqualTo130
         copy [PLAYER + Y_POS], 135
-        PlayLose
+        ld hl, LoseSound
+        call PlaySoundAtHL
         copy [PLAYER + STATE], STATE_DEAD
         call LoseLevel
         

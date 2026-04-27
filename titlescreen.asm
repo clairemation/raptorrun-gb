@@ -30,7 +30,8 @@ macro CheckForStartPress
         ld a, [WRAM_SELECTION]
         cp 0
         jr nz, .playGame\@
-            PlayStartSound
+            ld hl, StartSound
+            call PlaySoundAtHL
             copy [WRAM_DESTINATION_FADE], 6
             copy [WRAM_TITLESCREEN_STATE], STATE_STARTING_GAME
             jr .doneComparing
@@ -57,14 +58,6 @@ macro CheckForDPadPress
         copy [WRAM_SELECTION], 1
     .rightIsPressed
     .checkOver
-endm
-
-macro PlayStartSound
-    copyHighToMemory [rNR10], $15
-    copyHighToMemory [rNR11], $80
-    copyHighToMemory [rNR12], $f8
-    copyHighToMemory [rNR13], $0b
-    copyHighToMemory [rNR14], $c5
 endm
 
 section "titlescreen", rom0

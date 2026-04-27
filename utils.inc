@@ -84,4 +84,19 @@ macro CallJumpTableFunction
     .callReturnAddress\@
 endm
 
+; /1 = ram address
+macro WriteHLToRamAddress
+        ld a, h
+        ld [\1], a
+        ld a, l
+        ld [\1 + 1], a
+endm
+
+macro ReadHLFromRamAddress
+        ld a, [\1]
+        ld h, a
+        ld a, [\1 + 1]
+        ld l, a
+endm
+
 endc ;UTILS_RGBINC

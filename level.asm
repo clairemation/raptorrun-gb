@@ -83,33 +83,8 @@ macro StartSpeedUp
 
     copy [WRAM_PLAYER_STRUCT + STATE], STATE_SPEEDING_UP
 
-    copy [WRAM_PLAYER_STRUCT + STATE], STATE_SPEEDING_UP
     copy [WRAM_SPEEDUP_COUNTDOWN], 30
     copy [WRAM_LEVEL_STATE], STATE_PREPARING_TO_SPEED_UP
-endm
-
-macro PlaySpeedupSound1
-    copyHighToMemory [rNR10], $15
-    copyHighToMemory [rNR11], $0d
-    copyHighToMemory [rNR12], $f1
-    copyHighToMemory [rNR13], $ce
-    copyHighToMemory [rNR14], $c5
-endm
-
-macro PlaySpeedupSound2
-    copyHighToMemory [rNR10], $15
-    copyHighToMemory [rNR11], $0d
-    copyHighToMemory [rNR12], $f1
-    copyHighToMemory [rNR13], $0b
-    copyHighToMemory [rNR14], $c6
-endm
-
-macro PlaySpeedupSound3
-    copyHighToMemory [rNR10], $26
-    copyHighToMemory [rNR11], $00
-    copyHighToMemory [rNR12], $f0
-    copyHighToMemory [rNR13], $21
-    copyHighToMemory [rNR14], $c7
 endm
 
 ; a = index of scroll function
@@ -159,8 +134,6 @@ section "level", rom0
         ei
 
         ret
-
-    
 
     ResetLevel:
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_0
@@ -362,17 +335,20 @@ section "level", rom0
         ld [WRAM_SPEEDUP_COUNTDOWN], a
         cp 29
         jr nz, .firstSound
-            PlaySpeedupSound1
+            ld hl, SpeedupSound1
+            call PlaySoundAtHL
             ret 
         .firstSound
         cp 20
         jr nz, .secondSound
-            PlaySpeedupSound2
+            ld hl, SpeedupSound2
+            call PlaySoundAtHL
             ret
         .secondSound
         cp 10
         jr nz, .thirdSound
-            PlaySpeedupSound3
+            ld hl, SpeedupSound3
+            call PlaySoundAtHL
             ret
         .thirdSound
         cp 0
