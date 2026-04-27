@@ -79,6 +79,38 @@ macro UpdatePaletteGraphics
     ld [rOBP0], a
 endm
 
+macro AddScrollIncrement
+    ld a, \1
+    ld b, a
+    ld a, [WRAM_SCROLL_INCREMENT]
+    add a, b
+    ld \1, a
+endm
+
+; a = index of scroll function
+; \1 = address of scroll value e.g. WRAM_SCROLL_X_BACKGROUND
+macro CallScrollFunctionTableAtIndexA
+    ld hl, ScrollFunctionTable
+    ld e, a
+    xor a
+    ld d, a
+    add hl, de
+    add hl, de ;two bytes
+    
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+
+    ld de, .callReturnAddress\@
+    push de
+
+    ld de, \1
+
+    jp hl
+
+    .callReturnAddress\@
+endm
+
 section "level", rom0
 
     InitLevel:
@@ -247,6 +279,7 @@ section "level", rom0
         ld [WRAM_SCORE_TENS], a
         ld [WRAM_SCORE_HUNDREDS], a
         ld [WRAM_SCORE_THOUSANDS], a
+        ld [WRAM_SCROLL_INCREMENT], a
 
         call InitBouncerLogic
 
@@ -320,42 +353,134 @@ section "level", rom0
         ret
 
     Scroll:
-        ld hl, WRAM_SCROLL_X_FOREGROUND
-        inc [hl]
+
+        ;increment counters
 
         ld a, [WRAM_TOP_SCROLL_COUNTER]
         inc a
         ld [WRAM_TOP_SCROLL_COUNTER], a
 
-        and a, %00000011 ;every 4 frames
-        jr nz, .every4thFrame
-            ld a, [WRAM_SCROLL_X_FARBACKGROUND]
-            inc a
-            ld [WRAM_SCROLL_X_FARBACKGROUND], a
-        .every4thFrame
-
-        ld a, [WRAM_TOP_SCROLL_COUNTER]
-        and a, %00000001 ;every other frame
-        jr nz, .everyOtherFrame
-            ld a, [WRAM_SCROLL_X_MIDGROUND]
-            inc a
-            ld [WRAM_SCROLL_X_MIDGROUND], a
-        .everyOtherFrame
-
-        ;every 3 frames
         ld a, [WRAM_THREES_COUNTER]
         dec a
         jr nz, .isZero
-            ld a, [WRAM_SCROLL_X_BACKGROUND]
-            inc a
-            ld [WRAM_SCROLL_X_BACKGROUND], a
             ld a, 3
         .isZero
         ld [WRAM_THREES_COUNTER], a
 
+        ld a, [WRAM_SCROLL_INCREMENT]
+        CallScrollFunctionTableAtIndexA WRAM_SCROLL_X_FARBACKGROUND
+
+        ld a, [WRAM_SCROLL_INCREMENT]
+        inc a
+        CallScrollFunctionTableAtIndexA WRAM_SCROLL_X_BACKGROUND
+
+        ld a, [WRAM_SCROLL_INCREMENT]
+        add a, 2
+        CallScrollFunctionTableAtIndexA WRAM_SCROLL_X_MIDGROUND
+
+        ld a, [WRAM_SCROLL_INCREMENT]
+        add a, 3
+        CallScrollFunctionTableAtIndexA WRAM_SCROLL_X_FOREGROUND
+
+        ;other stuff
         call UpdateBouncers
 
         ret
+
+    ScrollFunctionTable:
+        dw ScrollValueAtDEOnePixelEveryFourFrames
+        dw ScrollValueAtDEOnePixelEveryThirdFrame
+        dw ScrollValueAtDEOnePixelEveryOtherFrame
+        dw ScrollValueAtDEOnePixelPerFrame
+        dw ScrollValueAtDETwoPixelsPerFrame
+        dw ScrollValueAtDEThreePixelsPerFrame
+        dw ScrollValueAtDEFourPixelsPerFrame
+        dw ScrollValueAtDEFivePixelsPerFrame
+        dw ScrollValueAtDESixPixelsPerFrame
+        dw ScrollValueAtDESevenPixelsPerFrame
+        dw ScrollValueAtDEEightPixelsPerFrame
+        dw ScrollValueAtDENinePixelsPerFrame
+
+    ScrollValueAtDENinePixelsPerFrame:
+        ld a, [de]
+        add a, 9
+        ld [de], a
+        ret
+
+    ScrollValueAtDEEightPixelsPerFrame:
+        ld a, [de]
+        add a, 8
+        ld [de], a
+        ret
+
+    ScrollValueAtDESevenPixelsPerFrame:
+        ld a, [de]
+        add a, 7
+        ld [de], a
+        ret
+
+    ScrollValueAtDESixPixelsPerFrame:
+        ld a, [de]
+        add a, 6
+        ld [de], a
+        ret
+
+    ScrollValueAtDEFivePixelsPerFrame:
+        ld a, [de]
+        add a, 5
+        ld [de], a
+        ret
+
+    ScrollValueAtDEFourPixelsPerFrame:
+        ld a, [de]
+        add a, 4
+        ld [de], a
+        ret
+
+    ScrollValueAtDEThreePixelsPerFrame:
+        ld a, [de]
+        add a, 3
+        ld [de], a
+        ret
+
+    ScrollValueAtDETwoPixelsPerFrame:
+        ld a, [de]
+        add a, 2
+        ld [de], a
+        ret
+
+    ScrollValueAtDEOnePixelPerFrame:
+        ld a, [de]
+        inc a
+        ld [de], a
+        ret
+
+    ScrollValueAtDEOnePixelEveryOtherFrame:
+        ld a, [WRAM_TOP_SCROLL_COUNTER]
+        and a, %00000001 ;every other frame
+        ret nz
+        ld a, [de]
+        inc a
+        ld [de], a
+        ret 
+
+    ScrollValueAtDEOnePixelEveryThirdFrame:
+        ld a, [WRAM_THREES_COUNTER]
+        cp 1
+        ret nz
+        ld a, [de]
+        inc a
+        ld [de], a
+        ret 
+
+    ScrollValueAtDEOnePixelEveryFourFrames:
+        ld a, [WRAM_TOP_SCROLL_COUNTER]
+        and a, %00000011 ;every fourth frame
+        ret nz
+        ld a, [de]
+        inc a
+        ld [de], a
+        ret 
 
     IncrementScore:
         ld a, [WRAM_SCORE_ONES]
@@ -385,6 +510,9 @@ section "level", rom0
                         ret
                     .thousandsOverflow
                     ld [WRAM_SCORE_THOUSANDS], a
+                    ld a, [WRAM_SCROLL_INCREMENT]
+                    inc a
+                    ld [WRAM_SCROLL_INCREMENT], a
                     ret
                 .carryHundred
                 ld [WRAM_SCORE_HUNDREDS], a
