@@ -241,6 +241,16 @@ section "level", rom0
     UpdatePreparingToSpeedUpGraphics:
         call UpdatePlayerGraphics
         call UpdateScrollGraphics
+
+        ld a, [rOBP0]
+        dec a
+        ld [rOBP0], a
+
+        ld a, [WRAM_SPEEDUP_COUNTDOWN]
+        cp 1
+        ret nz
+        ld a, %11100100
+        ld [rOBP0], a
         ret
 
     UpdateLosingGraphics:
