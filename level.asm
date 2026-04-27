@@ -27,20 +27,6 @@ def STATE_FADEOUT   rb 1
 def TEXT_LINE_0 equ (32 * 6)
 
 macro ClearTextLines
-    ; clear text lines
-    ld hl, _SCRN0 + TEXT_LINE_0
-    xor a
-    ld b, a
-    .eraseScreenLoop\@
-        xor a
-        ld [hli], a
-        inc b
-        ld a, b
-        cp a, 64
-        jr nz, .eraseScreenLoop\@
-endm
-
-macro ClearTextLines2
     ; clear text lines with original lines from tilemap in rom
     ld hl, _SCRN0 + TEXT_LINE_0
     ld de, BGTileMap + TEXT_LINE_0
@@ -210,7 +196,7 @@ section "level", rom0
 
 
     UpdateResettingStage0Graphics:
-        ClearTextLines2
+        ClearTextLines
         copy [WRAM_LEVEL_STATE], STATE_RESETTING_STAGE_1
         ret
 

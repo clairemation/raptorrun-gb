@@ -110,8 +110,8 @@ macro Draw4TileChunkToBackgroundStartingAtTileAToMapPositionHL
 endm
 
 ;TODO: replace
-macro KillSquashedSkeleton
-    ld a, [WRAM_SQUASHED_SKELETON_INDEX]
+macro KillSquashedBouncer
+    ld a, [WRAM_SQUASHED_BOUNCER_INDEX]
     ld b, a
 
     call AddIndexBToUpdateList
@@ -137,7 +137,7 @@ section "bouncers", rom0
             dec b
             jr nz, .loop
 
-        copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], $ff
+        copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], $ff
         
         ; add first 11 slots to update list to clear them
         ld hl, WRAM_BOUNCER_INDICES_TO_UPDATE
@@ -220,20 +220,20 @@ section "bouncers", rom0
             PopulateNextBouncerSlot
         .isOnSlotBorder
 
-        ;kill squashed skeleton if countdown is over
+        ;kill squashed bouncer if countdown is over
 
-        ld a, [WRAM_SQUASHED_SKELETON_COUNTDOWN]
+        ld a, [WRAM_SQUASHED_BOUNCER_COUNTDOWN]
         cp a, $ff ; $ff = no countdown active
         ret z ;no countdown active
         
         dec a
-        ld [WRAM_SQUASHED_SKELETON_COUNTDOWN], a
+        ld [WRAM_SQUASHED_BOUNCER_COUNTDOWN], a
         ret nz ;countdown not finished
 
         ;countdown finished
-        KillSquashedSkeleton
+        KillSquashedBouncer
 
-        copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], $ff
+        copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], $ff
         ret
 
     SquashBouncerAtHLInIndexB:

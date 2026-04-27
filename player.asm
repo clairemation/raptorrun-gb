@@ -244,17 +244,16 @@ Fall:
         .isBubble
             PlayPop
             call SquashBouncerAtHLInIndexB
-            copy [WRAM_SQUASHED_SKELETON_INDEX], b
-            copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], 8
+            copy [WRAM_SQUASHED_BOUNCER_INDEX], b
+            copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
             copy [PLAYER + SPEED], 30
             copy [PLAYER + STATE], STATE_RISING
             ret
         .isSkeleton
             PlayCrunch
             call SquashBouncerAtHLInIndexB
-            ;set up squashed skeleton animation
-            copy [WRAM_SQUASHED_SKELETON_INDEX], b
-            copy [WRAM_SQUASHED_SKELETON_COUNTDOWN], 8
+            copy [WRAM_SQUASHED_BOUNCER_INDEX], b
+            copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
             copy [PLAYER + SPEED], 30
             copy [PLAYER + STATE], STATE_RISING
             ret
