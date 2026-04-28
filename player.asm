@@ -217,6 +217,8 @@ Fall:
             ret
         .isFern
             call SquashBouncerAtHLInIndexB
+            copy [WRAM_SQUASHED_BOUNCER_INDEX], b
+            copy [WRAM_SQUASHED_BOUNCER_COUNTDOWN], 8
             ld hl, FernCrunchSound
             call PlaySoundAtHL
             copy [PLAYER + SPEED], 35
