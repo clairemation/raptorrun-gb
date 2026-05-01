@@ -126,6 +126,6 @@ BGTileMap:
 
 section "fonttiles", romx[FONT_TILESET_START], bank[3]
 FontTiles:
-    incbin "graphics/font.bin"
+    incbin "graphics/font3.bin"
 
 export InitGraphicsData, GameOverText, PressStartText, ScoreText, FontTiles, BGTileMap

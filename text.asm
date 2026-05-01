@@ -25,22 +25,10 @@ section "text", rom0
                 jr .loop
             .linebreak
 
-            cp a, $20 ;space
-            jr nz, .space
-                xor a ;space character gets tile #0
-                jr .specialCharacterCheckDone
-            .space
-            cp a, $2e ;period
-            jr nz, .period
-                ld a, $e9
-                jr .specialCharacterCheckDone
-            .period
-
             ;apply charset offset
             ld d, a
             ldh a, [HRAM_SCRATCH_BYTES]
             add a, d
-            .specialCharacterCheckDone 
             
             push hl; save hl
 
@@ -66,13 +54,7 @@ section "text", rom0
         cp $3B ; semicolon - sentinal character
         ret z ; exit if end of string
 
-        cp a, $20 ;space
-        jr nz, .space
-            xor a ;space character gets tile #0
-            jr .specialCharacterCheckDone
-        .space
-        add a, $3f ;offset from ascii value to tile index
-        .specialCharacterCheckDone
+        add a, $60 ;offset from ascii value to tile index
 
         copyHighToMemory [HRAM_SCRATCH_BYTES], a ;tile index
 
@@ -113,7 +95,7 @@ section "text", rom0
     ret
 
     WriteNumberAtAToXPositionB:
-        add a, $80 + 26 ;offset to tile index
+        add a, $90 ;offset to tile index
         ld c, a ;tile index
 
         ; add tile base to x position for tile address

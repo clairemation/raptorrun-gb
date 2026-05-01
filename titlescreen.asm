@@ -136,7 +136,7 @@ InitTitleScreen:
 
     call InitOAM
 
-    ld a, $84
+    ld a, $a5
     ld bc, TitleText
     ld hl, 32 * 16
     call WriteStringAtBCToTileIndexHLWithCharsetOffsetA

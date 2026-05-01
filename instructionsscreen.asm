@@ -36,7 +36,7 @@ InitInstructionsScreen:
 
     call ClearBackground
 
-    ld a, $84
+    ld a, $a5
     ld bc, InstructionsText
     ld hl, 0
     call WriteStringAtBCToTileIndexHLWithCharsetOffsetA
@@ -90,6 +90,7 @@ UpdateInstructionsScreen:
 
 section "instructions-text-data", romx, bank[2]
     InstructionsText:
-        db "/INSTRUCTIONS//YOU ARE A RAPTOR AND/YOUR PREY IS ACROSS/A HUGE TAR PIT.//BOUNCE ON OBJECTS/TO AVOID FALLING/INTO THE TAR.//PRESS A TO FLAP YOUR/WINGS TO SLOW YOUR/DESCENT AND TIME/YOUR LANDINGS.;"
+        db "/ INSTRUCTIONS:// PRESS A TO FLAP/ YOUR WINGS AND/ TIME YOUR LANDINGS.// BOUNCE ON OBJECTS/ TO AVOID FALLING/ INTO THE TAR PIT.// SPEED INCREASES/ EVERY 1000 POINTS.// HOW LONG CAN YOU/ SURVIVE?;"
+        ; db "/INSTRUCTIONS//YOU ARE A RAPTOR AND/YOUR PREY IS ACROSS/A HUGE TAR PIT.//BOUNCE ON OBJECTS/TO AVOID FALLING/INTO THE TAR.//PRESS A TO FLAP YOUR/WINGS TO SLOW YOUR/DESCENT AND TIME/YOUR LANDINGS.;"
 
 export InitInstructionsScreen, UpdateInstructionsScreen
