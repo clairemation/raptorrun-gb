@@ -113,12 +113,12 @@ InitTitleScreen:
     ld hl, $8800
     call LoadBytesToHLFromBCToDE
 
-    ;load the rest with font tiles
+    ;load the rest with space thru uppercase font tiles
     copy [rROMB0], 3
-    ld bc, FontTiles
-    inc bc ;tiles come out corrupted if I don't do this?
-    ld de, ROM_END
-    inc hl
+    ld bc, FONT_TILESET_START
+    ; inc bc ;tiles come out corrupted if I don't do this?
+    ld de, FONT_UPPERCASE_END
+    ; inc hl
     call LoadBytesToHLFromBCToDE
     copy [rROMB0], 2
 

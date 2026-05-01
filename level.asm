@@ -553,6 +553,9 @@ section "level", rom0
                         ret
                     .thousandsOverflow
                     ld [WRAM_SCORE_THOUSANDS], a
+                    ; speed up every 2000 points
+                    and a, %00000001
+                    ret nz
                     StartSpeedUp
                     ret
                 .carryHundred

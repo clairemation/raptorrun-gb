@@ -36,10 +36,21 @@ InitInstructionsScreen:
 
     call ClearBackground
 
-    ld a, $a5
+    ;load all font tiles
+    copy [rROMB0], 3
+    ld bc, FONT_TILESET_START
+    ld de, FONT_LOWERCASE_END
+    ld hl, $9000
+    call LoadBytesToHLFromBCToDE
+    copy [rROMB0], 2
+
+
+    ld a, $e0
     ld bc, InstructionsText
     ld hl, 0
     call WriteStringAtBCToTileIndexHLWithCharsetOffsetA
+
+    copy [rROMB0], 1
 
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJOFF | LCDCF_BGON
     ldh [rLCDC], a
@@ -90,7 +101,8 @@ UpdateInstructionsScreen:
 
 section "instructions-text-data", romx, bank[2]
     InstructionsText:
-        db "/ INSTRUCTIONS:// PRESS A TO FLAP/ YOUR WINGS AND/ TIME YOUR LANDINGS.// BOUNCE ON OBJECTS/ TO AVOID FALLING/ INTO THE TAR PIT.// SPEED INCREASES/ EVERY 1000 POINTS.// HOW LONG CAN YOU/ SURVIVE?;"
+        db "/INSTRUCTIONS:// Press A to flap/ your wings and/ time your landings.// Bounce on objects/ to avoid falling/ into the tar.// Speed increases/ every 2000 points.// How long can you/ survive?;"
+        ; db "/ INSTRUCTIONS:// PRESS A TO FLAP/ YOUR WINGS AND/ TIME YOUR LANDINGS.// BOUNCE ON OBJECTS/ TO AVOID FALLING/ INTO THE TAR.// SPEED INCREASES/ EVERY 2000 POINTS.// HOW LONG CAN YOU/ SURVIVE?;"
         ; db "/INSTRUCTIONS//YOU ARE A RAPTOR AND/YOUR PREY IS ACROSS/A HUGE TAR PIT.//BOUNCE ON OBJECTS/TO AVOID FALLING/INTO THE TAR.//PRESS A TO FLAP YOUR/WINGS TO SLOW YOUR/DESCENT AND TIME/YOUR LANDINGS.;"
 
 export InitInstructionsScreen, UpdateInstructionsScreen
