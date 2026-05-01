@@ -101,8 +101,6 @@ UpdateInstructionsScreen:
 
 section "instructions-text-data", romx, bank[2]
     InstructionsText:
-        db "/INSTRUCTIONS:// Press A to flap/ your wings and/ time your landings.// Bounce on objects/ to avoid falling/ into the tar.// Speed increases/ every 2000 points.// How long can you/ survive?;"
-        ; db "/ INSTRUCTIONS:// PRESS A TO FLAP/ YOUR WINGS AND/ TIME YOUR LANDINGS.// BOUNCE ON OBJECTS/ TO AVOID FALLING/ INTO THE TAR.// SPEED INCREASES/ EVERY 2000 POINTS.// HOW LONG CAN YOU/ SURVIVE?;"
-        ; db "/INSTRUCTIONS//YOU ARE A RAPTOR AND/YOUR PREY IS ACROSS/A HUGE TAR PIT.//BOUNCE ON OBJECTS/TO AVOID FALLING/INTO THE TAR.//PRESS A TO FLAP YOUR/WINGS TO SLOW YOUR/DESCENT AND TIME/YOUR LANDINGS.;"
+        db "/ INSTRUCTIONS:// Bounce on objects/ to avoid falling/ into the tar.// Press A to flap/ your wings and/ time your landings.// Speed increases/ every 2000 points.// How long can you/ survive?;"
 
 export InitInstructionsScreen, UpdateInstructionsScreen
